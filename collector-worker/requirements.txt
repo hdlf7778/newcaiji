@@ -1,0 +1,37 @@
+# 采集核心
+httpx[http2]==0.28.*
+beautifulsoup4==4.13.*
+lxml==5.3.*
+feedparser==6.0.*
+
+# 浏览器自动化
+playwright==1.50.*
+
+# 数据库
+PyMySQL==1.1.*
+cryptography==44.*
+
+# Redis
+redis==5.2.*
+
+# LLM 规则检测 API
+fastapi==0.115.*
+uvicorn==0.34.*
+
+# 附件解析
+pdfplumber==0.11.*
+python-docx==1.1.*
+openpyxl==3.1.*
+
+# 反爬
+ddddocr==1.5.*
+curl_cffi==0.7.*
+
+# 验证码/图片
+Pillow==11.*
+
+# 监控
+prometheus_client==0.21.*
+
+# 工具
+python-dotenv==1.1.*

@@ -1,0 +1,1443 @@
+{
+  "generated_at": "2026-03-27 18:52:51",
+  "sample_count": 62,
+  "template_patterns": {
+    "A": {
+      "name": "静态列表页",
+      "sample_count": 14,
+      "top_list_selectors": [
+        {
+          "selector": "ul > li > a",
+          "count": 3
+        },
+        {
+          "selector": ".mainMenu div a",
+          "count": 1
+        },
+        {
+          "selector": ".clearfix div a",
+          "count": 1
+        },
+        {
+          "selector": ".infosContentNew a",
+          "count": 1
+        },
+        {
+          "selector": ".news_in_body section a",
+          "count": 1
+        }
+      ],
+      "top_title_selectors": [
+        {
+          "selector": "h2",
+          "count": 2
+        },
+        {
+          "selector": "h1",
+          "count": 2
+        },
+        {
+          "selector": "h3",
+          "count": 1
+        }
+      ],
+      "top_content_selectors": [
+        {
+          "selector": ".contentBox",
+          "count": 2
+        },
+        {
+          "selector": ".mainMenu",
+          "count": 1
+        },
+        {
+          "selector": ".news_list_box_ly",
+          "count": 1
+        },
+        {
+          "selector": ".contentId_box",
+          "count": 1
+        },
+        {
+          "selector": ".main",
+          "count": 1
+        }
+      ],
+      "top_date_selectors": [
+        {
+          "selector": "span",
+          "count": 6
+        },
+        {
+          "selector": "p",
+          "count": 2
+        },
+        {
+          "selector": "h3",
+          "count": 1
+        }
+      ]
+    },
+    "I": {
+      "name": "政务云平台",
+      "sample_count": 13,
+      "top_list_selectors": [
+        {
+          "selector": "ul > li > a",
+          "count": 3
+        },
+        {
+          "selector": ".uli14 li a",
+          "count": 1
+        },
+        {
+          "selector": ".menu-child li a",
+          "count": 1
+        },
+        {
+          "selector": ".page-content li a",
+          "count": 1
+        },
+        {
+          "selector": ".drop-lists li a",
+          "count": 1
+        }
+      ],
+      "top_title_selectors": [
+        {
+          "selector": "h1",
+          "count": 2
+        },
+        {
+          "selector": "h2.Article-title",
+          "count": 1
+        },
+        {
+          "selector": "h1.inside-min-tb",
+          "count": 1
+        },
+        {
+          "selector": "h1.xl_tit4",
+          "count": 1
+        }
+      ],
+      "top_content_selectors": [
+        {
+          "selector": ".main",
+          "count": 2
+        },
+        {
+          "selector": ".TRS_Editor",
+          "count": 1
+        },
+        {
+          "selector": ".bt_content",
+          "count": 1
+        },
+        {
+          "selector": ".entity-widget-entity-type-block_content",
+          "count": 1
+        },
+        {
+          "selector": ".nav_con_2021",
+          "count": 1
+        }
+      ],
+      "top_date_selectors": [
+        {
+          "selector": "span",
+          "count": 4
+        },
+        {
+          "selector": "td",
+          "count": 2
+        },
+        {
+          "selector": "span.inline-block",
+          "count": 1
+        },
+        {
+          "selector": "div.sub_tit",
+          "count": 1
+        },
+        {
+          "selector": "div.cf-info-date",
+          "count": 1
+        }
+      ]
+    },
+    "G": {
+      "name": "SPA渲染",
+      "sample_count": 4,
+      "top_list_selectors": [
+        {
+          "selector": ".flex li a",
+          "count": 1
+        }
+      ],
+      "top_title_selectors": [],
+      "top_content_selectors": [
+        {
+          "selector": ".MsoBodyTextFirstIndent2",
+          "count": 1
+        },
+        {
+          "selector": ".hn_main",
+          "count": 1
+        },
+        {
+          "selector": ".text-18px!",
+          "count": 1
+        }
+      ],
+      "top_date_selectors": [
+        {
+          "selector": "span",
+          "count": 1
+        },
+        {
+          "selector": "label",
+          "count": 1
+        }
+      ]
+    },
+    "B": {
+      "name": "iframe加载",
+      "sample_count": 7,
+      "top_list_selectors": [
+        {
+          "selector": ".head-row div a",
+          "count": 1
+        },
+        {
+          "selector": "ul > li > a",
+          "count": 1
+        }
+      ],
+      "top_title_selectors": [
+        {
+          "selector": "h1",
+          "count": 2
+        },
+        {
+          "selector": "h1.title",
+          "count": 1
+        }
+      ],
+      "top_content_selectors": [
+        {
+          "selector": "span",
+          "count": 2
+        },
+        {
+          "selector": ".main",
+          "count": 2
+        },
+        {
+          "selector": ".content",
+          "count": 1
+        },
+        {
+          "selector": ".text",
+          "count": 1
+        },
+        {
+          "selector": ".rightMain",
+          "count": 1
+        }
+      ],
+      "top_date_selectors": [
+        {
+          "selector": "span.hnei",
+          "count": 1
+        },
+        {
+          "selector": "div.ArticleAbout",
+          "count": 1
+        },
+        {
+          "selector": "span",
+          "count": 1
+        },
+        {
+          "selector": "td",
+          "count": 1
+        },
+        {
+          "selector": "label.ml10",
+          "count": 1
+        }
+      ]
+    },
+    "C": {
+      "name": "API接口型",
+      "sample_count": 1,
+      "top_list_selectors": [
+        {
+          "selector": "dl > dd > a",
+          "count": 1
+        }
+      ],
+      "top_title_selectors": [
+        {
+          "selector": "h3.t",
+          "count": 1
+        }
+      ],
+      "top_content_selectors": [
+        {
+          "selector": ".pmain",
+          "count": 1
+        }
+      ],
+      "top_date_selectors": [
+        {
+          "selector": "span",
+          "count": 1
+        }
+      ]
+    },
+    "H": {
+      "name": "RSS订阅",
+      "sample_count": 6,
+      "top_list_selectors": [
+        {
+          "selector": "ul > li > a",
+          "count": 3
+        },
+        {
+          "selector": "tr > td > a",
+          "count": 1
+        },
+        {
+          "selector": "li > div > a",
+          "count": 1
+        }
+      ],
+      "top_title_selectors": [
+        {
+          "selector": "h3.font_center",
+          "count": 1
+        }
+      ],
+      "top_content_selectors": [
+        {
+          "selector": ".v_news_content",
+          "count": 1
+        },
+        {
+          "selector": ".c70__d4a86ffc-b13c-49b3-9f60-0edd1f1de60c_editExtralLi",
+          "count": 1
+        },
+        {
+          "selector": ".MsoBodyTextFirstIndent2",
+          "count": 1
+        },
+        {
+          "selector": ".newsBody",
+          "count": 1
+        },
+        {
+          "selector": ".news-detail",
+          "count": 1
+        }
+      ],
+      "top_date_selectors": [
+        {
+          "selector": "span",
+          "count": 2
+        },
+        {
+          "selector": "div.info",
+          "count": 1
+        },
+        {
+          "selector": "publishtime",
+          "count": 1
+        }
+      ]
+    }
+  },
+  "samples": [
+    {
+      "template": "A",
+      "name": "厦门市思明区教师进修学校",
+      "domain": "xmsmedu.cn",
+      "list_url": "http://www.xmsmedu.cn/xx/sbdexx/zpsw.htm",
+      "detail_url": "http://www.xmsmedu.cn/info/1343/20131.htm",
+      "rules": {
+        "list": {
+          "article_links": ".mainMenu div a",
+          "article_links_alt": "",
+          "date": "a"
+        },
+        "detail": {
+          "title": "h2",
+          "content": ".mainMenu",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "A",
+      "name": "吉安人事人才网",
+      "domain": "jarencai.com",
+      "list_url": "https://www.jarencai.com/index/offers_more.aspx",
+      "detail_url": "https://www.jarencai.com/infos/166859.html?IsHideTop=",
+      "rules": {
+        "list": {
+          "article_links": ".clearfix div a",
+          "article_links_alt": ".EntJob a",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": "",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": ""
+      }
+    },
+    {
+      "template": "A",
+      "name": "西北工业大学计算机学院复杂软件系统技术实验室",
+      "domain": "renshi.nwpu.edu.cn",
+      "list_url": "https://renshi.nwpu.edu.cn/rczp/zxzp.htm",
+      "detail_url": "https://renshi.nwpu.edu.cn/info/1326/23535.htm",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": "",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": ""
+      }
+    },
+    {
+      "template": "A",
+      "name": "雅安人事考试网",
+      "domain": "yarsks.com.cn",
+      "list_url": "https://www.yarsks.com.cn/newsCenter/3.html",
+      "detail_url": "https://www.yarsks.com.cn/newsDetail/11038.html",
+      "rules": {
+        "list": {
+          "article_links": ".infosContentNew a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".contentBox",
+          "publish_date": "p",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "A",
+      "name": "江门人才网",
+      "domain": "jobjm.com",
+      "list_url": "https://www.jobjm.com/wap/c_article-nid_3.html",
+      "detail_url": "https://www.jobjm.com/wap/c_article-a_show-id_6126.html",
+      "rules": {
+        "list": {
+          "article_links": ".news_in_body section a",
+          "article_links_alt": ".news_in_cont a",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1",
+          "content": ".news_list_box_ly",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "A",
+      "name": "江西省人才测评中心",
+      "domain": "jxrcrsksta.com",
+      "list_url": "https://www.jxrcrsksta.com/list/7",
+      "detail_url": "https://jxrcrsksta.com/content/1886/?categoryId=7",
+      "rules": {
+        "list": {
+          "article_links": "ul > div > a",
+          "article_links_alt": "",
+          "date": "span"
+        },
+        "detail": {
+          "title": "",
+          "content": ".contentId_box",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "A",
+      "name": "复旦大学数学科学学院",
+      "domain": "hr.fudan.edu.cn",
+      "list_url": "https://hr.fudan.edu.cn/15366/list.htm",
+      "detail_url": "https://hr.fudan.edu.cn/ba/39/c15370a703033/page.htm",
+      "rules": {
+        "list": {
+          "article_links": ".wp-menu li a",
+          "article_links_alt": ".menu-item a",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".main",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "MEDIUM",
+        "detail": "LOW"
+      }
+    },
+    {
+      "template": "A",
+      "name": "南昌市人力资源服务中心",
+      "domain": "ncrczpw.com",
+      "list_url": "https://www.ncrczpw.com/index.php?m=&c=jobs&a=jobs_list",
+      "detail_url": "https://www.ncrczpw.com/kaoshi/265.html",
+      "rules": {
+        "list": {
+          "article_links": ".nav_box li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": "",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": ""
+      }
+    },
+    {
+      "template": "A",
+      "name": "广西人才网·防城港站",
+      "domain": "fcg.gxrc.com",
+      "list_url": "https://fcg.gxrc.com/article/list/2719",
+      "detail_url": "https://fcg.gxrc.com/Article/info/9e266ed1-de06-403e-b9d3-0de8aa80035d",
+      "rules": {
+        "list": {
+          "article_links": ".ww a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1",
+          "content": "font",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "A",
+      "name": "资中县机关事务服务中心",
+      "domain": "scnjnews.com",
+      "list_url": "https://www.scnjnews.com/news/node_40374.html",
+      "detail_url": "https://www.scnjnews.com/content/2025-02/19/content_6676281.html",
+      "rules": {
+        "list": {
+          "article_links": ".header a",
+          "article_links_alt": "",
+          "date": "span"
+        },
+        "detail": {
+          "title": "",
+          "content": ".info-text",
+          "publish_date": "span",
+          "source": ".statement-text"
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "A",
+      "name": "自贡市人力资源服务中心",
+      "domain": "zgrc114.com.cn",
+      "list_url": "https://www.zgrc114.com.cn//article/index.php?c=show&id=3354",
+      "detail_url": "https://www.zgrc114.com.cn/article/index.php?c=show&id=3548",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": "h3"
+        },
+        "detail": {
+          "title": "h2",
+          "content": ".login_pop_up_box_text",
+          "publish_date": "h3",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "A",
+      "name": "海港开发区人才网",
+      "domain": "tsrcw.com",
+      "list_url": "https://www.tsrcw.com/hgrcw/index.aspx",
+      "detail_url": "https://www.tsrcw.com/news/news.aspx?id=5400",
+      "rules": {
+        "list": {
+          "article_links": ".list li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".contents",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "LOW"
+      }
+    },
+    {
+      "template": "A",
+      "name": "资阳人事考试网",
+      "domain": "zypta.org.cn",
+      "list_url": "https://www.zypta.org.cn/zyks/news/list/56",
+      "detail_url": "https://www.zypta.org.cn/zyks/news/show/17767",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".contentBox",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "A",
+      "name": "成都市简阳市",
+      "domain": "jysrc369.cn",
+      "list_url": "http://www.jysrc369.cn/list.aspx?id=28&Model_id=1",
+      "detail_url": "http://www.jysrc369.cn/page.aspx?id=5383&classid=86",
+      "rules": {
+        "list": {
+          "article_links": ".ul3 li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h3",
+          "content": ".article_h",
+          "publish_date": "p",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "上海市公共卫生临床中心",
+      "domain": "rsj.sh.gov.cn",
+      "list_url": "https://rsj.sh.gov.cn/tzpgg_17408/index.html",
+      "detail_url": "https://rsj.sh.gov.cn/tzpgg_17408/20241125/t0035_1429045.html",
+      "rules": {
+        "list": {
+          "article_links": ".uli14 li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h2.Article-title",
+          "content": ".TRS_Editor",
+          "publish_date": "span.inline-block",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "杭州市西湖区灵隐街道",
+      "domain": "hzxh.gov.cn",
+      "list_url": "https://www.hzxh.gov.cn/col/col1229417930/index.html",
+      "detail_url": "https://www.hzxh.gov.cn/art/2024/11/26/art_1229417930_4316581.html",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".bt_content",
+          "publish_date": "td",
+          "source": "td"
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "中山大学孙逸仙纪念医院",
+      "domain": "gzsys.org.cn",
+      "list_url": "http://www.gzsys.org.cn/cat/980",
+      "detail_url": "https://www.gzsys.org.cn/article/28766",
+      "rules": {
+        "list": {
+          "article_links": ".menu-child li a",
+          "article_links_alt": ".menu-item a",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1.inside-min-tb",
+          "content": ".entity-widget-entity-type-block_content",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "杭州市上城区",
+      "domain": "hzsc.gov.cn",
+      "list_url": "http://www.hzsc.gov.cn/col/col1497142/index.html",
+      "detail_url": "https://www.hzsc.gov.cn/art/2024/11/28/art_1497142_59082354.html",
+      "rules": {
+        "list": {
+          "article_links": ".page-content li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".main",
+          "publish_date": "div.sub_tit",
+          "source": ".sub_tit"
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "重庆市永川区人民政府",
+      "domain": "cqyc.gov.cn",
+      "list_url": "http://www.cqyc.gov.cn/zwgk_204/zfxxgk/zfxxgkml/qtfdzdgknr/qtzlp/",
+      "detail_url": "https://www.cqyc.gov.cn/zwgk_204/zfxxgk/zfxxgkml/qtfdzdgknr/qtzlp/202412/t20241202_13849728.html",
+      "rules": {
+        "list": {
+          "article_links": ".drop-lists li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": "",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": ""
+      }
+    },
+    {
+      "template": "I",
+      "name": "福州市鼓楼区政府",
+      "domain": "gl.gov.cn",
+      "list_url": "http://www.gl.gov.cn/xjwz/zwgkml/zdlyxxgk/jyxx/",
+      "detail_url": "http://www.gl.gov.cn/xjwz/zwgkml/rsxx/zkzp/zlks_sbjd/202411/t20241125_4931589.htm",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": "span.longdate3"
+        },
+        "detail": {
+          "title": "h1.xl_tit4",
+          "content": ".nav_con_2021",
+          "publish_date": "span",
+          "source": "a"
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "哈尔滨工业大学",
+      "domain": "today.hit.edu.cn",
+      "list_url": "http://today.hit.edu.cn/taxonomy/term/10/26",
+      "detail_url": "http://today.hit.edu.cn/article/2024/11/23/117745",
+      "rules": {
+        "list": {
+          "article_links": ".pull-right a",
+          "article_links_alt": "",
+          "date": "span"
+        },
+        "detail": {
+          "title": "",
+          "content": ".lang_text_ellipsis",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "LOW"
+      }
+    },
+    {
+      "template": "I",
+      "name": "金华市大学生欢迎中心",
+      "domain": "jhrcsc.com",
+      "list_url": "https://www.jhrcsc.com/articles",
+      "detail_url": "https://www.jhrcsc.com/articles/2268",
+      "rules": {
+        "list": {
+          "article_links": ".ant-col div a",
+          "article_links_alt": ".ant-list-item a",
+          "date": "div.cf-info-date"
+        },
+        "detail": {
+          "title": "",
+          "content": ".text-ellipsis",
+          "publish_date": "div.cf-info-date",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "I",
+      "name": "河南科技大学",
+      "domain": "ywzl.hrss.henan.gov.cn",
+      "list_url": "https://ywzl.hrss.henan.gov.cn/sitegroup/root/html/4aef1408279926e601279e53eac517a5/viewCmsCac.do?cacId=4aef1408279926e601279e53eac517a5",
+      "detail_url": "https://ywzl.hrss.henan.gov.cn/sitegroup/root/html/4aef1408279926e601279e53eac517a5/1d0f98432a15424c9de14df251d13806.html",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".maincon",
+          "publish_date": "div.context",
+          "source": ".context"
+        }
+      },
+      "confidence": {
+        "list": "",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "绵阳市国有资产监督管理委员会",
+      "domain": "gzw.my.gov.cn",
+      "list_url": "https://gzw.my.gov.cn/mysgzw/c101662/list.shtml",
+      "detail_url": "https://gzw.my.gov.cn/mysgzw/c101662/202411/141250e8a92e47c48938f467a591ce5a.shtml",
+      "rules": {
+        "list": {
+          "article_links": ".article-list li a",
+          "article_links_alt": ".odd a",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1",
+          "content": ".main",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "贵阳市南明区教育局",
+      "domain": "nanming.gov.cn",
+      "list_url": "https://www.nanming.gov.cn/zfbm_0/qfzhggj/gzdt_5739281/",
+      "detail_url": "https://www.nanming.gov.cn/zfbm_0/qrlzyhshbzj/zfxxgk_5739283/fdzdgknr_5739286/jycy_5834381/zpxx/202411/t20241128_86145838.html",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1",
+          "content": ".inputText1",
+          "publish_date": "div",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "曲靖市人力资源和社会保障局",
+      "domain": "rsj.qj.gov.cn",
+      "list_url": "https://rsj.qj.gov.cn/list/jyfw/auto/107.html",
+      "detail_url": "https://rsj.qj.gov.cn/view/jyfw/138440.html",
+      "rules": {
+        "list": {
+          "article_links": ".ej div a",
+          "article_links_alt": ".ejdd a",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".text",
+          "publish_date": "span",
+          "source": "span"
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "I",
+      "name": "温州市龙湾区卫生健康系统事业单位",
+      "domain": "longwan.gov.cn",
+      "list_url": "http://www.longwan.gov.cn/col/col1229260887/index.html",
+      "detail_url": "http://www.longwan.gov.cn/art/2024/11/27/art_1229514571_4266191.html",
+      "rules": {
+        "list": {
+          "article_links": "div > div > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".text-tag",
+          "publish_date": "td",
+          "source": "td"
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "G",
+      "name": "宜宾人事考试网",
+      "domain": "ybrsks.com.cn",
+      "list_url": "https://www.ybrsks.com.cn/#/",
+      "detail_url": "https://www.ybrsks.com.cn//file/website/html/2024/11/c0581683-a287-4398-91d0-f70464da25f9.html",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".MsoBodyTextFirstIndent2",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "G",
+      "name": "中国地质大学(北京)",
+      "domain": "bm.cugb.edu.cn",
+      "list_url": "http://bm.cugb.edu.cn/rscnew/rczp/",
+      "detail_url": "https://bm.cugb.edu.cn/rscnew/c/2024-12-10/815573.shtml",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".hn_main",
+          "publish_date": "label",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "G",
+      "name": "中国医学科学院基础医学研究所(北京协和医学院基础学院)",
+      "domain": "sbm.pumc.edu.cn",
+      "list_url": "https://sbm.pumc.edu.cn/rcdw/ktzc/index.htm",
+      "detail_url": "http://sbm.pumc.edu.cn/article/18073",
+      "rules": {
+        "list": {
+          "article_links": ".flex li a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": "",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": ""
+      }
+    },
+    {
+      "template": "G",
+      "name": "贵州习酒投资控股集团有限责任公司",
+      "domain": "gzxijiu.com",
+      "list_url": "https://www.gzxijiu.com/news/gggs",
+      "detail_url": "https://www.gzxijiu.com/Home/news_detail?id=5154",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".text-18px!",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "LOW"
+      }
+    },
+    {
+      "template": "B",
+      "name": "枣庄市市中区人民政府",
+      "domain": "zzszq.gov.cn",
+      "list_url": "http://www.zzszq.gov.cn/zw/gkml/qzbm/rlzyhshbzj/",
+      "detail_url": "http://www.zzszq.gov.cn/zw/gkml/qzbm/rlzyhshbzj/202501/t20250120_2002144.html",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1",
+          "content": ".content",
+          "publish_date": "span.hnei",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "B",
+      "name": "滨海新区泰达公办中小学",
+      "domain": "zp.tedahr.com",
+      "list_url": "http://zp.tedahr.com/",
+      "detail_url": "https://zp.tedahr.com/info2013.aspx?id=714fa5b4-437f-4b38-bfec-d89b7a9fd040",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": "span",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "LOW"
+      }
+    },
+    {
+      "template": "B",
+      "name": "易门县人民政府",
+      "domain": "ym.gov.cn",
+      "list_url": "https://www.ym.gov.cn/yxgovfront/jiucuo/index.jspx?path=ym",
+      "detail_url": "http://www.ym.gov.cn/ymxzfxxgk/jygwxx/20241203/1571503.html",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".main",
+          "publish_date": "div.ArticleAbout",
+          "source": ".ArticleAbout"
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "B",
+      "name": "天河教育在线",
+      "domain": "thzhjy.org.cn",
+      "list_url": "https://www.thzhjy.org.cn/",
+      "detail_url": "https://www.thzhjy.org.cn/jeecms/article/detail?articleId=6211",
+      "rules": {
+        "list": {
+          "article_links": ".head-row div a",
+          "article_links_alt": ".el-col a",
+          "date": "div.title"
+        },
+        "detail": {
+          "title": "",
+          "content": ".text",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "MEDIUM",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "B",
+      "name": "澄江市人民政府",
+      "domain": "yncj.gov.cn",
+      "list_url": "https://www.yncj.gov.cn/yxgovfront/jiucuo/index.jspx?path=cj",
+      "detail_url": "https://www.yncj.gov.cn/cjxzfxxgk/jygqxx/20250612/1606776.html",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1",
+          "content": ".main",
+          "publish_date": "td",
+          "source": "td"
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "B",
+      "name": "江苏省农业科学院经济作物研究所",
+      "domain": "newiic.jaas.ac.cn",
+      "list_url": "http://newiic.jaas.ac.cn/xww/tzgg/index.html",
+      "detail_url": "http://newiic.jaas.ac.cn/xww/tzgg/art/2025/art_a61835cde5eb4580b4ab980957a51f18.html",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".rightMain",
+          "publish_date": "label.ml10",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "MEDIUM",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "B",
+      "name": "吉林省",
+      "domain": "jleea.com.cn",
+      "list_url": "https://www.jleea.com.cn/front/channel/10649",
+      "detail_url": "https://www.jleea.com.cn/site1/xiangqingye/201604/",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h1.title",
+          "content": "span",
+          "publish_date": "p.paragraph",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "C",
+      "name": "四川艺术职业学院",
+      "domain": "scapi.cn",
+      "list_url": "https://www.scapi.cn/xwtz/tzgg.htm",
+      "detail_url": "https://www.scapi.cn/info/1024/10702.htm",
+      "rules": {
+        "list": {
+          "article_links": "dl > dd > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h3.t",
+          "content": ".pmain",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "H",
+      "name": "江西中医药大学",
+      "domain": "jxutcm.edu.cn",
+      "list_url": "https://www.jxutcm.edu.cn/index/xxgk/rssz.htm",
+      "detail_url": "https://www.jxutcm.edu.cn/info/1135/79300.htm",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".v_news_content",
+          "publish_date": "div.info",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "H",
+      "name": "东莞外国语学校",
+      "domain": "dgfls.dgjy.net",
+      "list_url": "https://dgfls.dgjy.net/xxgk58970/xwgk58971/rsszxx58977.htm",
+      "detail_url": "https://dgfls.dgjy.net/info/2152/270154.htm",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": "div.fright"
+        },
+        "detail": {
+          "title": "",
+          "content": "",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": ""
+      }
+    },
+    {
+      "template": "H",
+      "name": "长沙卫生职业学院",
+      "domain": "cswszy.com",
+      "list_url": "https://www.cswszy.com/school/rsszwt",
+      "detail_url": "https://www.cswszy.com/xwwxqy?id=241120poertv9atgmeoqfm",
+      "rules": {
+        "list": {
+          "article_links": "",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".c70__d4a86ffc-b13c-49b3-9f60-0edd1f1de60c_editExtralLi",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "LOW",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "H",
+      "name": "万年县人民政府",
+      "domain": "zgwn.gov.cn",
+      "list_url": "http://www.zgwn.gov.cn/BMGKRSJ/db0012/list.shtml",
+      "detail_url": "http://www.zgwn.gov.cn/BMGKRSJ/db0012/202411/b3e99e6e0940467f98338ac04f3de4d9.shtml",
+      "rules": {
+        "list": {
+          "article_links": "tr > td > a",
+          "article_links_alt": "",
+          "date": "a"
+        },
+        "detail": {
+          "title": "",
+          "content": ".MsoBodyTextFirstIndent2",
+          "publish_date": "publishtime",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "MEDIUM"
+      }
+    },
+    {
+      "template": "H",
+      "name": "厦门老年大学",
+      "domain": "xmlndx.cn",
+      "list_url": "http://www.xmlndx.cn/menu_detail.jsp?key=wmenu.3&index=0",
+      "detail_url": "http://www.xmlndx.cn/news_203127040709_144040019.html?pkey=wmenu.6&index=1",
+      "rules": {
+        "list": {
+          "article_links": "li > div > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "h3.font_center",
+          "content": ".newsBody",
+          "publish_date": "span",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "HIGH"
+      }
+    },
+    {
+      "template": "H",
+      "name": "厦门市储备粮管理集团有限公司",
+      "domain": "xmliangshi.com",
+      "list_url": "http://www.xmliangshi.com/Pages/Home/News.aspx?classId=8",
+      "detail_url": "http://www.xmliangshi.com/Pages/Home/NewsDetail.aspx?rowId=26637",
+      "rules": {
+        "list": {
+          "article_links": "ul > li > a",
+          "article_links_alt": "",
+          "date": ""
+        },
+        "detail": {
+          "title": "",
+          "content": ".news-detail",
+          "publish_date": "",
+          "source": ""
+        }
+      },
+      "confidence": {
+        "list": "HIGH",
+        "detail": "LOW"
+      }
+    }
+  ]
+}

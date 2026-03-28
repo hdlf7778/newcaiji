@@ -1,0 +1,41 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Spring Boot Actuator (task-manager)
+  - job_name: 'task-manager'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['task-manager:8080']
+        labels:
+          service: 'task-manager'
+
+  # Python Worker HTTP (可能有多个副本)
+  - job_name: 'worker-http'
+    static_configs:
+      - targets: ['worker-http:9090']
+        labels:
+          service: 'collector-worker'
+          worker_type: 'http'
+
+  # Python Worker Browser
+  - job_name: 'worker-browser'
+    static_configs:
+      - targets: ['worker-browser:9091']
+        labels:
+          service: 'collector-worker'
+          worker_type: 'browser'
+
+  # Python LLM API Server
+  - job_name: 'worker-api'
+    static_configs:
+      - targets: ['worker-api:9092']
+        labels:
+          service: 'collector-worker'
+          worker_type: 'api'
+
+  # Prometheus 自监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

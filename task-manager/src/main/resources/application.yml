@@ -1,0 +1,72 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: collector-task-manager
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:collector}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# 采集系统自定义配置
+collector:
+  # LLM（豆包大模型）
+  llm:
+    api-url: ${LLM_API_URL:https://ark.cn-beijing.volces.com/api/v3}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:doubao-1-5-pro-32k}
+    timeout: 120
+
+  # Python Worker API
+  worker:
+    api-url: ${WORKER_API_URL:http://localhost:8001}
+
+  # JWT
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production-at-least-64-chars-long-for-hs512}
+    expiration: 86400000  # 24小时
+
+  # 采集调度
+  schedule:
+    work-hours: "08:00-20:00"
+    work-interval: 7200      # 工作时间2小时
+    off-interval: 14400      # 非工作时间4小时
+    manual-trigger-priority: 100

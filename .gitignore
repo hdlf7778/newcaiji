@@ -1,0 +1,36 @@
+# Environment secrets
+docker/.env
+*.env
+*.env.local
+!docker/.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Java
+task-manager/target/
+*.class
+
+# Node
+web-admin/node_modules/
+web-admin/dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Docker volumes
+docker/mysql-data/
+docker/redis-data/
+
+# Logs
+*.log
+
+# Test artifacts
+tests/captcha_samples/

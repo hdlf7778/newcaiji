@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "源画像库采集系统 — Java↔Python 消息契约",
+  "description": "定义 Java 管理端与 Python Worker 通过 Redis 通信的三种消息体格式。字段命名统一使用 snake_case。",
+  "version": "1.0",
+  "definitions": {
+    "list_rule": {
+      "type": "object",
+      "description": "列表页采集规则（CSS选择器）",
+      "properties": {
+        "list_container": { "type": "string", "description": "列表容器选择器", "examples": [".article-list", "ul > li"] },
+        "list_item": { "type": "string", "description": "列表项选择器", "examples": ["li.article-item"] },
+        "title_selector": { "type": "string", "description": "标题选择器", "examples": ["a.title"] },
+        "url_selector": { "type": "string", "description": "链接选择器", "examples": ["a.title"] },
+        "date_selector": { "type": ["string", "null"], "description": "日期选择器", "examples": ["span.date"] },
+        "date_format": { "type": ["string", "null"], "description": "日期格式", "examples": ["yyyy-MM-dd"] },
+        "max_items": { "type": "integer", "default": 20, "description": "最大提取条数" }
+      },
+      "required": ["list_container", "title_selector", "url_selector"]
+    },
+    "detail_rule": {
+      "type": "object",
+      "description": "详情页采集规则（CSS选择器）",
+      "properties": {
+        "title_selector": { "type": "string", "description": "标题选择器", "examples": ["h1.article-title", "h1"] },
+        "content_selector": { "type": "string", "description": "正文选择器", "examples": ["div.article-content", ".TRS_Editor", ".content"] },
+        "publish_time_selector": { "type": ["string", "null"], "description": "发布时间选择器", "examples": ["div.publish-time", "span"] },
+        "remove_selectors": { "type": "array", "items": { "type": "string" }, "description": "需移除的元素选择器", "examples": [[".share-bar", "script"]] },
+        "attachment_selector": { "type": ["string", "null"], "description": "附件链接选择器", "examples": ["a[href$='.pdf'], a[href$='.doc']"] }
+      },
+      "required": ["title_selector", "content_selector"]
+    },
+    "rule": {
+      "type": "object",
+      "properties": {
+        "list_rule": { "$ref": "#/definitions/list_rule" },
+        "detail_rule": { "$ref": "#/definitions/detail_rule" }
+      },
+      "required": ["list_rule", "detail_rule"]
+    },
+    "anti_bot": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["none", "cookie_auto", "captcha_ocr", "js_fingerprint", "proxy_rotate"], "default": "none" },
+        "proxy_pool": { "type": ["string", "null"], "description": "代理池地址" },
+        "cookie_url": { "type": ["string", "null"], "description": "Cookie获取URL" }
+      },
+      "required": ["type"]
+    },
+    "attachments_config": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "parse_content": { "type": "boolean", "default": true }
+      }
+    }
+  },
+
+  "messages": {
+    "task_message": {
+      "title": "任务消息体（Java写入 → Python消费）",
+      "description": "Java管理端生成采集任务后写入Redis队列，Python Worker消费执行",
+      "redis_key": "task:http:pending | task:browser:pending | task:priority",
+      "redis_type": "ZSet (score=priority) | List (priority queue)",
+      "type": "object",
+      "properties": {
+        "task_id": { "type": "string", "format": "uuid", "description": "任务唯一ID" },
+        "source_id": { "type": "integer", "description": "采集源ID" },
+        "source_name": { "type": ["string", "null"], "description": "采集源名称（冗余，便于日志）" },
+        "column_name": { "type": ["string", "null"], "description": "栏目名称（冗余，便于日志）" },
+        "url": { "type": "string", "format": "uri", "description": "采集入口URL" },
+        "template": {
+          "type": "string",
+          "enum": ["static_list", "iframe_loader", "api_json", "wechat_article", "search_discovery", "auth_required", "spa_render", "rss_feed", "gov_cloud_platform", "captured_api"],
+          "description": "模板类型代码"
+        },
+        "rule": { "$ref": "#/definitions/rule" },
+        "platform_params": {
+          "type": ["object", "null"],
+          "description": "政务云平台参数（模板I专用）",
+          "properties": {
+            "web_id": { "type": "string" },
+            "page_id": { "type": "string" },
+            "node_id": { "type": "string" },
+            "xxgk_id": { "type": "string" }
+          }
+        },
+        "anti_bot": { "$ref": "#/definitions/anti_bot" },
+        "attachments": { "$ref": "#/definitions/attachments_config" },
+        "priority": { "type": "integer", "minimum": 1, "maximum": 100, "default": 5, "description": "优先级(1-100, 100=手动触发最高)" },
+        "retry_count": { "type": "integer", "default": 0, "description": "已重试次数" },
+        "created_at": { "type": "string", "format": "date-time", "description": "ISO 8601+时区" }
+      },
+      "required": ["task_id", "source_id", "url", "template", "rule", "priority", "retry_count", "created_at"]
+    },
+
+    "result_message": {
+      "title": "结果回报体（Python写入 → Java消费）",
+      "description": "Python Worker采集完成后写入Redis结果队列，Java管理端消费更新状态",
+      "redis_key": "task:result",
+      "redis_type": "List (LPUSH写入, BRPOP消费)",
+      "type": "object",
+      "properties": {
+        "task_id": { "type": "string", "format": "uuid" },
+        "source_id": { "type": "integer" },
+        "status": { "type": "string", "enum": ["success", "partial", "failed", "timeout"], "description": "采集结果状态" },
+        "articles_found": { "type": "integer", "description": "列表页发现的文章总数" },
+        "articles_new": { "type": "integer", "description": "本次新增入库的文章数" },
+        "duration_ms": { "type": "integer", "description": "采集耗时(毫秒)" },
+        "error_message": { "type": ["string", "null"], "description": "错误信息（成功时为null）" },
+        "error_type": { "type": ["string", "null"], "enum": [null, "network_timeout", "http_403", "http_429", "parse_error", "template_mismatch", "ssl_error", "anti_bot_blocked"], "description": "错误类型分类" },
+        "completed_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["task_id", "source_id", "status", "articles_found", "articles_new", "duration_ms", "completed_at"]
+    },
+
+    "heartbeat_message": {
+      "title": "Worker心跳体",
+      "description": "Python Worker定期写入心跳，Java管理端监控Worker存活状态",
+      "redis_key": "worker:heartbeat:{worker_id}",
+      "redis_type": "String (SET with TTL 60s)",
+      "type": "object",
+      "properties": {
+        "worker_id": { "type": "string", "description": "Worker唯一标识", "examples": ["http-worker-01", "browser-worker-02"] },
+        "worker_type": { "type": "string", "enum": ["http", "browser"] },
+        "status": { "type": "string", "enum": ["running", "idle", "stopping"] },
+        "current_task_id": { "type": ["string", "null"], "format": "uuid", "description": "当前正在执行的任务ID（idle时为null）" },
+        "cpu_usage": { "type": "number", "description": "CPU使用率(%)" },
+        "memory_mb": { "type": "integer", "description": "内存使用(MB)" },
+        "tasks_completed": { "type": "integer", "description": "累计完成任务数" },
+        "tasks_failed": { "type": "integer", "description": "累计失败任务数" },
+        "uptime_seconds": { "type": "integer", "description": "运行时长(秒)" },
+        "heartbeat_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["worker_id", "worker_type", "status", "tasks_completed", "heartbeat_at"]
+    }
+  }
+}
