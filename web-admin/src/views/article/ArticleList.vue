@@ -132,7 +132,6 @@ const columns = [
   { title: '网站名称', dataIndex: 'source_id', key: 'source_name', width: 130 },
   { title: '栏目名称', dataIndex: 'source_id', key: 'column_name', width: 120 },
   { title: '发布时间', dataIndex: 'publish_date', key: 'publish_date', width: 110 },
-  { title: '作者', dataIndex: 'author', key: 'author', width: 80 },
   { title: '采集时间', dataIndex: 'fetched_at', key: 'fetched_at', width: 150 },
 ]
 
