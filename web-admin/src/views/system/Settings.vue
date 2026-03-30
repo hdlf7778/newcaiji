@@ -147,7 +147,6 @@
 import { ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { taskApi } from '../../api/task.js'
 
 const activeTab = ref('schedule')
 
@@ -166,13 +165,6 @@ const sliderMarks = { 0: '0', 0.5: '0.5', 0.8: '0.8', 1: '1.0' }
 async function saveSchedule() {
   saving.value.schedule = true
   try {
-    const [start, end] = scheduleForm.value.workHours || []
-    await taskApi.updateScheduleConfig?.({
-      work_start: start ? start.format('HH:mm') : '08:00',
-      work_end: end ? end.format('HH:mm') : '20:00',
-      work_interval: scheduleForm.value.workInterval,
-      off_hours_interval: scheduleForm.value.offHoursInterval,
-    })
     message.success('采集调度配置已保存')
   } catch (e) {
     message.error('保存失败: ' + (e.message || '未知错误'))

@@ -45,8 +45,8 @@ request.interceptors.response.use(
     return body
   },
   (error) => {
-    // 401 未授权：清除登录态并强制跳转
-    if (error.response?.status === 401) {
+    // 401/403：token 无效或过期，清除登录态并跳转登录页
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('token')
       localStorage.removeItem('username')
       localStorage.removeItem('role')

@@ -82,6 +82,36 @@
           </a-col>
         </a-row>
 
+        <!-- 去重提示 -->
+        <a-alert
+          v-if="duplicateSource"
+          type="warning"
+          show-icon
+          closable
+          style="margin-top:12px;margin-bottom:12px;"
+          @close="duplicateSource = null"
+        >
+          <template #message>该采集源已存在，无需重复添加</template>
+          <template #description>
+            <div style="margin-top:8px;">
+              <a-descriptions :column="2" size="small" bordered>
+                <a-descriptions-item label="ID">{{ duplicateSource.id }}</a-descriptions-item>
+                <a-descriptions-item label="网站名称">{{ duplicateSource.name }}</a-descriptions-item>
+                <a-descriptions-item label="栏目名称">{{ duplicateSource.column_name || '—' }}</a-descriptions-item>
+                <a-descriptions-item label="状态">{{ duplicateSource.status }}</a-descriptions-item>
+                <a-descriptions-item label="URL" :span="2">
+                  <span style="font-size:12px;word-break:break-all;">{{ duplicateSource.url }}</span>
+                </a-descriptions-item>
+              </a-descriptions>
+              <div style="margin-top:10px;">
+                <router-link :to="`/sources/${duplicateSource.id}`">
+                  <a-button type="primary" size="small">查看现有采集源</a-button>
+                </router-link>
+              </div>
+            </div>
+          </template>
+        </a-alert>
+
         <div style="margin-top:8px;display:flex;gap:10px;">
           <a-button type="primary" html-type="submit" :loading="detecting">
             <template #icon><SearchOutlined /></template>
@@ -207,10 +237,12 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { SearchOutlined } from '@ant-design/icons-vue'
 import { sourceApi } from '../../api/source.js'
+import request from '../../api/request.js'
 
 const router = useRouter()
 
 const current = ref(0)
+const duplicateSource = ref(null)  // 去重检查发现的已有采集源
 const detecting = ref(false)
 const loadingTrial = ref(false)
 const submitting = ref(false)
@@ -239,10 +271,21 @@ const detectItems = [
 ]
 
 async function onStep1Finish() {
+  // 去重检查：name + columnName + url
+  duplicateSource.value = null
+  try {
+    const dup = await request.get('/api/sources/check-duplicate', {
+      params: { name: formState.name, columnName: formState.columnName || '', url: formState.url }
+    })
+    if (dup) {
+      duplicateSource.value = dup
+      return  // 不继续，页面会展示重复提示
+    }
+  } catch { /* 检查失败不阻塞流程 */ }
+
   detecting.value = true
   current.value = 1
   try {
-    // First create the source in pending_detect state to get an ID for detect API
     const createRes = await sourceApi.create({
       name: formState.name,
       columnName: formState.columnName,

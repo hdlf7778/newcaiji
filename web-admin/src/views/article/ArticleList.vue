@@ -82,11 +82,14 @@
               <LinkOutlined />
             </a>
           </template>
-          <template v-if="column.key === 'attachmentCount'">
-            <a-tag v-if="record.attachmentCount > 0" color="blue">
-              {{ record.attachmentCount }}
-            </a-tag>
-            <span v-else style="color:#d9d9d9;">—</span>
+          <template v-if="column.key === 'source_name'">
+            <router-link v-if="sourceInfoMap[record.source_id]" :to="`/sources/${record.source_id}`" style="color:#1677ff;">
+              {{ sourceInfoMap[record.source_id]?.name }}
+            </router-link>
+            <span v-else style="color:#bfbfbf;">#{{ record.source_id }}</span>
+          </template>
+          <template v-if="column.key === 'column_name'">
+            {{ sourceInfoMap[record.source_id]?.column_name || '—' }}
           </template>
         </template>
       </a-table>
@@ -99,6 +102,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { message } from 'ant-design-vue'
 import { LinkOutlined } from '@ant-design/icons-vue'
 import { articleApi } from '../../api/article.js'
+import request from '../../api/request.js'
 
 const query = reactive({
   sourceName: '',
@@ -123,13 +127,25 @@ const pagination = computed(() => ({
 }))
 
 const columns = [
-  { title: '标题', dataIndex: 'title', key: 'title', width: 300, ellipsis: true },
-  { title: '文章网址', dataIndex: 'url', key: 'url', width: 60 },
-  { title: '发布时间', dataIndex: 'publish_date', key: 'publish_date', width: 120 },
-  { title: '采集源ID', dataIndex: 'source_id', key: 'source_id', width: 100 },
-  { title: '作者', dataIndex: 'author', key: 'author', width: 100 },
-  { title: '采集时间', dataIndex: 'fetched_at', key: 'fetched_at', width: 160 },
+  { title: '标题', dataIndex: 'title', key: 'title', width: 280, ellipsis: true },
+  { title: '网址', dataIndex: 'url', key: 'url', width: 50 },
+  { title: '网站名称', dataIndex: 'source_id', key: 'source_name', width: 130 },
+  { title: '栏目名称', dataIndex: 'source_id', key: 'column_name', width: 120 },
+  { title: '发布时间', dataIndex: 'publish_date', key: 'publish_date', width: 110 },
+  { title: '作者', dataIndex: 'author', key: 'author', width: 80 },
+  { title: '采集时间', dataIndex: 'fetched_at', key: 'fetched_at', width: 150 },
 ]
+
+// 采集源信息缓存：{id: {name, column_name}}
+const sourceInfoMap = ref({})
+async function loadSourceInfo() {
+  try {
+    const res = await request.get('/api/sources', { params: { page: 1, pageSize: 500 } })
+    for (const s of (res?.records || [])) {
+      sourceInfoMap.value[s.id] = { name: s.name, column_name: s.column_name }
+    }
+  } catch { /* ignore */ }
+}
 
 async function fetchList() {
   loading.value = true
@@ -226,6 +242,7 @@ async function onExport() {
 }
 
 onMounted(() => {
+  loadSourceInfo()
   fetchList()
 })
 </script>

@@ -1,10 +1,12 @@
 package com.collector.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.collector.common.PageResult;
 import com.collector.common.Result;
 import com.collector.dto.*;
 import com.collector.entity.CollectorSource;
 import com.collector.enums.SourceStatus;
+import com.collector.mapper.CollectorSourceMapper;
 import com.collector.service.SourceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.util.Map;
 public class SourceController {
 
     private final SourceService sourceService;
+    private final CollectorSourceMapper sourceMapper;
 
     /** GET /api/sources - list with query params */
     @GetMapping
@@ -63,6 +66,23 @@ public class SourceController {
         query.setPage(page);
         query.setSize(size);
         return Result.ok(sourceService.list(query));
+    }
+
+    /** GET /api/sources/check-duplicate — 去重检查（name + columnName + url） */
+    @GetMapping("/check-duplicate")
+    public Result<CollectorSource> checkDuplicate(
+            @RequestParam String name,
+            @RequestParam(required = false) String columnName,
+            @RequestParam String url) {
+        LambdaQueryWrapper<CollectorSource> wrapper = new LambdaQueryWrapper<CollectorSource>()
+                .and(w -> w
+                        .eq(CollectorSource::getUrl, url)
+                        .or().eq(CollectorSource::getName, name));
+        if (columnName != null && !columnName.isBlank()) {
+            wrapper.eq(CollectorSource::getColumnName, columnName);
+        }
+        CollectorSource existing = sourceMapper.selectOne(wrapper.last("LIMIT 1"));
+        return Result.ok(existing); // null 表示不重复
     }
 
     /** GET /api/sources/stats-by-status */
