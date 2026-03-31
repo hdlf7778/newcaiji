@@ -53,6 +53,9 @@ public class CustomTemplateController {
                 new LambdaQueryWrapper<CustomTemplate>().eq(CustomTemplate::getCode, template.getCode()));
         if (exists > 0) throw new BusinessException("模板代码已存在: " + template.getCode());
 
+        template.setId(null);
+        template.setCreatedAt(null);
+        template.setUpdatedAt(null);
         template.setEnabled(true);
         template.setSourceCount(0);
         mapper.insert(template);
@@ -69,6 +72,8 @@ public class CustomTemplateController {
     public Result<Void> update(@PathVariable Integer id, @RequestBody CustomTemplate template) {
         if (mapper.selectById(id) == null) throw new BusinessException(404, "自定义模板不存在");
         template.setId(id);
+        template.setCreatedAt(null);
+        template.setUpdatedAt(null);
         mapper.updateById(template);
         return Result.ok();
     }

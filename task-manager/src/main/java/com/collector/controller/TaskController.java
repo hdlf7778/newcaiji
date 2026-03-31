@@ -48,6 +48,8 @@ public class TaskController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
 
+        size = Math.min(size, 200);
+
         LambdaQueryWrapper<CollectorTask> wrapper = new LambdaQueryWrapper<>();
         if (status != null && !status.isEmpty()) {
             wrapper.eq(CollectorTask::getStatus, status);

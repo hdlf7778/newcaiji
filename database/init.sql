@@ -18,7 +18,7 @@ CREATE TABLE collector_source (
     column_name VARCHAR(200) DEFAULT NULL COMMENT '栏目名称',
     url VARCHAR(2000) NOT NULL COMMENT '采集入口URL（列表页）',
     source_type VARCHAR(50) DEFAULT NULL COMMENT '来源分类（事业单位/卫健/教育等）',
-    template VARCHAR(50) DEFAULT 'static_list' COMMENT '模板类型: static_list/iframe_loader/api_json/wechat_article/search_discovery/auth_required/spa_render/rss_feed/gov_cloud_platform/captured_api',
+    template VARCHAR(50) DEFAULT NULL COMMENT '模板类型: static_list/iframe_loader/api_json/wechat_article/search_discovery/auth_required/spa_render/rss_feed/gov_cloud_platform/captured_api（导入时为NULL，检测后自动设置）',
     platform VARCHAR(50) DEFAULT NULL COMMENT '政务云平台标识（如 jpaas_zhejiang）',
     platform_params JSON DEFAULT NULL COMMENT '平台参数（web_id/page_id/node_id等）',
     region VARCHAR(100) DEFAULT NULL COMMENT '地区（省/市）',
@@ -322,6 +322,26 @@ CREATE TABLE system_config (
 
     UNIQUE KEY uk_config_key (config_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置';
+
+
+-- ============================================================
+-- 13. custom_template — 自定义采集模板
+-- ============================================================
+CREATE TABLE custom_template (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自定义模板ID',
+    name VARCHAR(100) NOT NULL COMMENT '模板显示名称',
+    code VARCHAR(50) NOT NULL UNIQUE COMMENT '模板唯一编码',
+    base_template VARCHAR(50) DEFAULT NULL COMMENT '继承的基础模板类型',
+    description TEXT DEFAULT NULL COMMENT '模板说明',
+    default_list_rule JSON DEFAULT NULL COMMENT '默认列表页采集规则',
+    default_detail_rule JSON DEFAULT NULL COMMENT '默认详情页采集规则',
+    default_anti_bot JSON DEFAULT NULL COMMENT '默认反爬策略配置',
+    default_platform_params JSON DEFAULT NULL COMMENT '默认平台参数',
+    enabled TINYINT DEFAULT 1 COMMENT '是否启用',
+    source_count INT DEFAULT 0 COMMENT '使用此模板的数据源数量',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='自定义采集模板';
 
 
 -- ============================================================

@@ -1,99 +1,145 @@
 <!--
-  模板列表页（TemplateList）
-
-  功能：
-    - 内置模板卡片：展示 10 种内置采集模板及其采集源数、24h 任务数、成功率
-    - 自定义模板管理：新增 / 编辑 / 删除，支持 JSON 规则和反爬配置
-    - 自定义模板需选择一个基础模板作为采集逻辑的运行基础
+  模板列表页（TemplateList）— 列表模式 + 点击查看采集源
 -->
 <template>
   <div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <h2 style="font-size:18px;font-weight:600;margin:0;">模板列表</h2>
+      <a-button type="primary" @click="onAddCustom">
+        <template #icon><PlusOutlined /></template>
+        添加自定义模板
+      </a-button>
     </div>
 
-    <!-- 内置模板 -->
-    <h3 style="font-size:15px;color:#595959;margin-bottom:12px;">内置模板（10个）</h3>
     <a-row :gutter="16">
-      <a-col :span="8" v-for="t in builtinTemplates" :key="t.code">
-        <a-card hoverable style="margin-bottom:16px;">
+      <!-- 左侧：模板表格 -->
+      <a-col :span="selectedTemplate ? 10 : 24">
+        <!-- 内置模板 -->
+        <a-card title="内置模板" size="small" style="margin-bottom:16px;">
+          <a-table
+            :columns="builtinColumns"
+            :data-source="builtinTemplates"
+            :pagination="false"
+            row-key="code"
+            size="small"
+            :row-class-name="(record) => record.code === selectedTemplate?.code ? 'row-selected' : ''"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'name'">
+                <a @click="onSelectTemplate(record, 'builtin')" style="display:flex;align-items:center;gap:6px;">
+                  <a-tag :color="record.color" size="small">{{ record.letter }}</a-tag>
+                  <span style="font-weight:500;">{{ record.label }}</span>
+                </a>
+              </template>
+              <template v-if="column.key === 'queue'">
+                <a-tag :color="record.queue === 'http' ? 'blue' : 'orange'" size="small">{{ record.queue.toUpperCase() }}</a-tag>
+              </template>
+              <template v-if="column.key === 'rate'">
+                <span :style="{ color: record.rate >= 95 ? '#52c41a' : record.rate >= 80 ? '#fa8c16' : '#ff4d4f' }">
+                  {{ record.rate }}%
+                </span>
+              </template>
+              <template v-if="column.key === 'builtin_action'">
+                <router-link :to="'/templates/' + record.code">
+                  <a-button type="link" size="small">详情</a-button>
+                </router-link>
+              </template>
+            </template>
+          </a-table>
+        </a-card>
+
+        <!-- 自定义模板 -->
+        <a-card size="small">
+          <template #title>
+            <span>自定义模板 <a-tag size="small">{{ customTemplates.length }}</a-tag></span>
+          </template>
+          <a-table
+            :columns="customColumns"
+            :data-source="customTemplates"
+            :pagination="customTemplates.length > 20 ? { pageSize: 20, size: 'small' } : false"
+            row-key="id"
+            size="small"
+            :row-class-name="(record) => record.id === selectedTemplate?.id && selectedType === 'custom' ? 'row-selected' : ''"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'name'">
+                <a @click="onSelectTemplate(record, 'custom')" style="font-weight:500;">{{ record.name }}</a>
+              </template>
+              <template v-if="column.key === 'base_template'">
+                <a-tag size="small">{{ baseTemplateLabel(record.base_template) }}</a-tag>
+              </template>
+              <template v-if="column.key === 'enabled'">
+                <a-tag :color="record.enabled ? 'green' : 'default'" size="small">{{ record.enabled ? '启用' : '停用' }}</a-tag>
+              </template>
+              <template v-if="column.key === 'action'">
+                <a-space>
+                  <router-link :to="'/templates/' + record.id">
+                    <a-button type="link" size="small">详情</a-button>
+                  </router-link>
+                  <a-button type="link" size="small" @click.stop="onEditCustom(record)">编辑</a-button>
+                  <a-popconfirm title="确认删除此模板？" @confirm="onDeleteCustom(record.id)">
+                    <a-button type="link" size="small" danger>删除</a-button>
+                  </a-popconfirm>
+                </a-space>
+              </template>
+            </template>
+            <template #emptyText>
+              <div style="padding:16px;text-align:center;color:#8c8c8c;">暂无自定义模板</div>
+            </template>
+          </a-table>
+        </a-card>
+      </a-col>
+
+      <!-- 右侧：选中模板的采集源列表 -->
+      <a-col v-if="selectedTemplate" :span="14">
+        <a-card size="small">
           <template #title>
             <div style="display:flex;align-items:center;gap:8px;">
-              <a-tag :color="t.color">{{ t.letter }}</a-tag>
-              <span style="font-weight:600;">{{ t.label }}</span>
+              <a-tag v-if="selectedTemplate.letter" :color="selectedTemplate.color">{{ selectedTemplate.letter }}</a-tag>
+              <a-tag v-else color="purple">自定义</a-tag>
+              <span>{{ selectedTemplate.label || selectedTemplate.name }}</span>
+              <span style="color:#8c8c8c;font-size:13px;">的采集源</span>
+              <a-tag>{{ sourcePagination.total }} 个</a-tag>
             </div>
           </template>
           <template #extra>
-            <a-tag :color="t.queue === 'http' ? 'blue' : 'orange'">{{ t.queue }}</a-tag>
+            <a-button type="text" size="small" @click="selectedTemplate = null">关闭</a-button>
           </template>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">采集源数</span>
-            <span style="font-weight:600;">{{ t.sourceCount }}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">24h任务</span>
-            <span style="font-weight:600;">{{ t.taskTotal }}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">成功率</span>
-            <span :style="{ fontWeight: 600, color: t.rate >= 95 ? '#52c41a' : t.rate >= 80 ? '#fa8c16' : '#ff4d4f' }">
-              {{ t.rate }}%
-            </span>
-          </div>
-          <div style="margin-top:12px;font-size:12px;color:#999;">{{ t.desc }}</div>
-        </a-card>
-      </a-col>
-    </a-row>
 
-    <!-- 自定义模板 -->
-    <h3 style="font-size:15px;color:#595959;margin:24px 0 12px;">自定义模板</h3>
-    <a-row :gutter="16">
-      <a-col :span="8" v-for="ct in customTemplates" :key="ct.id">
-        <a-card hoverable style="margin-bottom:16px;">
-          <template #title>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <a-tag color="purple">自定义</a-tag>
-              <span style="font-weight:600;">{{ ct.name }}</span>
-            </div>
-          </template>
-          <template #extra>
-            <a-space>
-              <a-button type="link" size="small" @click="onEditCustom(ct)">编辑</a-button>
-              <a-popconfirm title="确认删除此模板？" @confirm="onDeleteCustom(ct.id)">
-                <a-button type="link" size="small" danger>删除</a-button>
-              </a-popconfirm>
-            </a-space>
-          </template>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">模板代码</span>
-            <span style="font-family:monospace;font-size:12px;">{{ ct.code }}</span>
+          <div v-if="selectedTemplate.desc || selectedTemplate.description" style="margin-bottom:12px;font-size:12px;color:#8c8c8c;">
+            {{ selectedTemplate.desc || selectedTemplate.description }}
           </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">基础模板</span>
-            <a-tag size="small">{{ baseTemplateLabel(ct.base_template) }}</a-tag>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">采集源数</span>
-            <span style="font-weight:600;">{{ ct.source_count || 0 }}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:#888;">状态</span>
-            <a-tag :color="ct.enabled ? 'green' : 'default'">{{ ct.enabled ? '启用' : '停用' }}</a-tag>
-          </div>
-          <div style="margin-top:12px;font-size:12px;color:#999;">{{ ct.description || '暂无说明' }}</div>
-        </a-card>
-      </a-col>
 
-      <!-- 添加自定义模板入口 -->
-      <a-col :span="8">
-        <a-card
-          hoverable
-          style="margin-bottom:16px;border:2px dashed #d9d9d9;display:flex;align-items:center;justify-content:center;min-height:220px;cursor:pointer;"
-          :body-style="{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', width: '100%', height: '100%' }"
-          @click="onAddCustom"
-        >
-          <PlusOutlined style="font-size:32px;color:#bfbfbf;margin-bottom:12px;" />
-          <span style="font-size:14px;color:#8c8c8c;">添加自定义模板</span>
+          <a-spin :spinning="sourceListLoading">
+            <a-table
+              :columns="sourceColumns"
+              :data-source="sourceList"
+              :pagination="sourcePagination.total > 20 ? { ...sourcePagination, size: 'small', showSizeChanger: false } : false"
+              row-key="id"
+              size="small"
+              @change="onSourcePageChange"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'name'">
+                  <router-link :to="'/sources/' + record.id">{{ record.name }}</router-link>
+                </template>
+                <template v-if="column.key === 'status'">
+                  <a-tag :color="statusColor(record.status)" size="small">{{ statusLabel(record.status) }}</a-tag>
+                </template>
+                <template v-if="column.key === 'trial_score'">
+                  {{ record.trial_score != null ? record.trial_score : '—' }}
+                </template>
+                <template v-if="column.key === 'health_score'">
+                  <span :style="{ color: (record.health_score ?? 100) >= 80 ? '#52c41a' : (record.health_score ?? 100) >= 50 ? '#fa8c16' : '#ff4d4f' }">
+                    {{ record.health_score ?? '—' }}
+                  </span>
+                </template>
+              </template>
+              <template #emptyText>
+                <div style="padding:24px;text-align:center;color:#8c8c8c;">暂无采集源使用此模板</div>
+              </template>
+            </a-table>
+          </a-spin>
         </a-card>
       </a-col>
     </a-row>
@@ -120,35 +166,21 @@
               {{ bt.letter }} {{ bt.label }}
             </a-select-option>
           </a-select>
-          <div style="font-size:12px;color:#999;margin-top:4px;">自定义模板基于哪个内置模板的采集逻辑运行</div>
         </a-form-item>
         <a-form-item label="模板说明">
           <a-textarea v-model:value="form.description" placeholder="描述此模板适用的场景" :rows="2" />
         </a-form-item>
         <a-form-item label="默认列表规则">
-          <a-textarea
-            v-model:value="form.default_list_rule"
-            placeholder='{"list_container": "ul", "list_item": "li", "title_selector": "a", ...}'
-            :rows="4"
-            style="font-family:monospace;font-size:12px;"
-          />
-          <div style="font-size:12px;color:#999;margin-top:4px;">JSON 格式，使用此模板创建采集源时自动填入</div>
+          <a-textarea v-model:value="form.default_list_rule" :rows="4" style="font-family:monospace;font-size:12px;"
+            placeholder='{"list_container": "ul", "title_selector": "a", ...}' />
         </a-form-item>
         <a-form-item label="默认详情规则">
-          <a-textarea
-            v-model:value="form.default_detail_rule"
-            placeholder='{"content_selector": ".article-content", "title_selector": "h1", ...}'
-            :rows="4"
-            style="font-family:monospace;font-size:12px;"
-          />
+          <a-textarea v-model:value="form.default_detail_rule" :rows="4" style="font-family:monospace;font-size:12px;"
+            placeholder='{"content_selector": ".article-content", "title_selector": "h1", ...}' />
         </a-form-item>
         <a-form-item label="默认反爬配置">
-          <a-textarea
-            v-model:value="form.default_anti_bot"
-            placeholder='{"type": "cookie_auto", "delay_min": 1, "delay_max": 3}'
-            :rows="3"
-            style="font-family:monospace;font-size:12px;"
-          />
+          <a-textarea v-model:value="form.default_anti_bot" :rows="3" style="font-family:monospace;font-size:12px;"
+            placeholder='{"type": "cookie_auto", "delay_min": 1, "delay_max": 3}' />
         </a-form-item>
         <a-form-item label="启用状态">
           <a-switch v-model:checked="form.enabled" />
@@ -159,12 +191,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import request from '../../api/request.js'
+import { statusLabel, statusColor } from '../../constants/source.js'
 
-// 10 种内置模板定义（code 与后端枚举对应）
 const BASE_TEMPLATES = [
   { code: 'static_list',        letter: 'A', label: '静态列表页',  queue: 'http',    color: 'purple', desc: '服务端渲染的HTML列表页，用CSS选择器提取' },
   { code: 'iframe_loader',      letter: 'B', label: 'iframe加载', queue: 'browser',  color: 'orange', desc: 'iframe嵌套内容，需解析iframe src后二次请求' },
@@ -178,10 +210,49 @@ const BASE_TEMPLATES = [
   { code: 'captured_api',       letter: 'J', label: '抓包API',   queue: 'http',    color: 'default', desc: '通过抓包获取的隐藏API' },
 ]
 
+// 内置模板列
+const builtinColumns = [
+  { title: '模板', key: 'name', width: 170 },
+  { title: '说明', dataIndex: 'desc', key: 'desc', ellipsis: true },
+  { title: '队列', key: 'queue', width: 80, align: 'center' },
+  { title: '采集源', dataIndex: 'sourceCount', key: 'sourceCount', width: 80, align: 'center' },
+  { title: '24h任务', dataIndex: 'taskTotal', key: 'taskTotal', width: 80, align: 'center' },
+  { title: '成功率', key: 'rate', width: 80, align: 'center' },
+  { title: '', key: 'builtin_action', width: 60, align: 'center' },
+]
+
+// 自定义模板列
+const customColumns = [
+  { title: '名称', key: 'name', width: 160 },
+  { title: '代码', dataIndex: 'code', key: 'code', width: 130 },
+  { title: '基础模板', key: 'base_template', width: 120 },
+  { title: '采集源', dataIndex: 'source_count', key: 'source_count', width: 70, align: 'center' },
+  { title: '状态', key: 'enabled', width: 70, align: 'center' },
+  { title: '操作', key: 'action', width: 110, align: 'center' },
+]
+
+// 采集源列
+const sourceColumns = [
+  { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
+  { title: '名称', key: 'name', ellipsis: true },
+  { title: '状态', key: 'status', width: 100 },
+  { title: '评分', key: 'trial_score', width: 70, align: 'center' },
+  { title: '健康度', key: 'health_score', width: 80, align: 'center' },
+  { title: '地区', dataIndex: 'region', key: 'region', width: 100, ellipsis: true },
+]
+
+// State
 const builtinTemplates = ref(BASE_TEMPLATES.map(t => ({ ...t, sourceCount: 0, taskTotal: 0, rate: 0 })))
 const customTemplates = ref([])
 
-// Modal state
+// 右侧面板
+const selectedTemplate = ref(null)
+const selectedType = ref('')
+const sourceList = ref([])
+const sourceListLoading = ref(false)
+const sourcePagination = reactive({ current: 1, pageSize: 20, total: 0 })
+
+// Modal
 const modalVisible = ref(false)
 const editingId = ref(null)
 const saving = ref(false)
@@ -193,9 +264,41 @@ function makeEmptyForm() {
 
 function baseTemplateLabel(code) {
   const bt = BASE_TEMPLATES.find(t => t.code === code)
-  return bt ? `${bt.letter} ${bt.label}` : code
+  return bt ? `${bt.letter} ${bt.label}` : code || '\u2014'
 }
 
+// 点击模板名 → 加载右侧采集源
+async function onSelectTemplate(tpl, type) {
+  selectedTemplate.value = tpl
+  selectedType.value = type
+  sourcePagination.current = 1
+  await loadSources()
+}
+
+async function loadSources() {
+  const tpl = selectedTemplate.value
+  if (!tpl) return
+  sourceListLoading.value = true
+  try {
+    const templateCode = selectedType.value === 'builtin' ? tpl.code : tpl.base_template
+    const res = await request.get('/api/sources', {
+      params: { template: templateCode, page: sourcePagination.current, pageSize: sourcePagination.pageSize }
+    })
+    sourceList.value = res?.records || []
+    sourcePagination.total = res?.total || 0
+  } catch {
+    sourceList.value = []
+  } finally {
+    sourceListLoading.value = false
+  }
+}
+
+function onSourcePageChange(pag) {
+  sourcePagination.current = pag.current
+  loadSources()
+}
+
+// CRUD
 function onAddCustom() {
   editingId.value = null
   form.value = makeEmptyForm()
@@ -205,9 +308,7 @@ function onAddCustom() {
 function onEditCustom(ct) {
   editingId.value = ct.id
   form.value = {
-    name: ct.name,
-    code: ct.code,
-    base_template: ct.base_template,
+    name: ct.name, code: ct.code, base_template: ct.base_template,
     description: ct.description || '',
     default_list_rule: ct.default_list_rule || '',
     default_detail_rule: ct.default_detail_rule || '',
@@ -217,35 +318,28 @@ function onEditCustom(ct) {
   modalVisible.value = true
 }
 
-/** 保存自定义模板（新增或编辑），保存前校验必填项和 JSON 格式 */
 async function onSave() {
   if (!form.value.name?.trim()) { message.error('请输入模板名称'); return }
   if (!form.value.code?.trim()) { message.error('请输入模板代码'); return }
   if (!form.value.base_template) { message.error('请选择基础模板'); return }
-
-  // 校验 JSON 格式字段
   for (const field of ['default_list_rule', 'default_detail_rule', 'default_anti_bot']) {
     if (form.value[field]?.trim()) {
       try { JSON.parse(form.value[field]) }
       catch { message.error(`${field} JSON 格式错误`); return }
     }
   }
-
   saving.value = true
   try {
-    const payload = { ...form.value }
     if (editingId.value) {
-      await request.put(`/api/custom-templates/${editingId.value}`, payload)
+      await request.put(`/api/custom-templates/${editingId.value}`, form.value)
       message.success('模板已更新')
     } else {
-      await request.post('/api/custom-templates', payload)
+      await request.post('/api/custom-templates', form.value)
       message.success('自定义模板已创建')
     }
     modalVisible.value = false
     fetchCustomTemplates()
-  } catch (e) {
-    // handled by interceptor
-  } finally {
+  } catch { /* handled */ } finally {
     saving.value = false
   }
 }
@@ -254,12 +348,12 @@ async function onDeleteCustom(id) {
   try {
     await request.delete(`/api/custom-templates/${id}`)
     message.success('模板已删除')
+    if (selectedTemplate.value?.id === id) selectedTemplate.value = null
     fetchCustomTemplates()
-  } catch {
-    // handled
-  }
+  } catch { /* handled */ }
 }
 
+// Data fetching
 async function fetchBuiltinData() {
   try {
     const healthRaw = await request.get('/api/monitor/templates')
@@ -289,3 +383,12 @@ onMounted(() => {
   fetchCustomTemplates()
 })
 </script>
+
+<style scoped>
+:deep(.row-selected) {
+  background-color: #e6f4ff !important;
+}
+:deep(.row-selected td) {
+  background-color: #e6f4ff !important;
+}
+</style>

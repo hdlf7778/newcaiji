@@ -1,0 +1,22 @@
+# Secrets
+docker/.env
+**/*.env
+**/.env.local
+
+# Data volumes
+docker/mysql-data/
+docker/redis-data/
+
+# Build artifacts
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+**/dist/
+**/*.log
+**/target/
+
+# IDE and VCS
+.git/
+.idea/
+.vscode/
+.DS_Store

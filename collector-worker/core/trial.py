@@ -186,14 +186,8 @@ class TrialRunner:
 
     def save_trial_result(self, source_id: int, result: TrialResult):
         """将试采结果写入数据库"""
-        import config
-        import pymysql
-        conn = pymysql.connect(
-            host=config.DB_HOST, port=config.DB_PORT,
-            user=config.DB_USERNAME, password=config.DB_PASSWORD,
-            database=config.DB_NAME, charset='utf8mb4', autocommit=True,
-        )
-        try:
+        from core.database import get_db
+        with get_db() as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """UPDATE collector_source
@@ -207,5 +201,3 @@ class TrialRunner:
                      datetime.now(TZ_CN).strftime('%Y-%m-%d %H:%M:%S'),
                      result.score, source_id)
                 )
-        finally:
-            conn.close()

@@ -26,7 +26,7 @@ class StaticListCrawler(BaseCrawlerTemplate):
 
     async def fetch_list(self) -> list[ArticleItem]:
         """第一步: 采集列表页，提取文章链接"""
-        client = get_client()
+        client = await get_client()
         resp = await client.get(self.url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
 
@@ -113,7 +113,7 @@ class StaticListCrawler(BaseCrawlerTemplate):
 
     async def fetch_detail(self, item: ArticleItem) -> ArticleContent:
         """第二步: 采集详情页，提取正文内容"""
-        client = get_client()
+        client = await get_client()
         resp = await client.get(item.url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
 

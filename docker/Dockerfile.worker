@@ -22,5 +22,8 @@ EXPOSE 9090
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD curl -sf http://localhost:${METRICS_PORT:-9090}/metrics || exit 1
 
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+USER appuser
+
 # 默认 HTTP 模式，可通过 command 覆盖
 CMD ["python", "worker.py", "--queue", "http"]

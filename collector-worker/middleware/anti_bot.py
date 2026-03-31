@@ -116,7 +116,7 @@ class AntiBotHandler:
         proxy = self._next_proxy()
         self._client = httpx.AsyncClient(
             follow_redirects=True,
-            verify=False,
+            verify=True,
             timeout=httpx.Timeout(connect=8, read=15, write=8, pool=20),
             headers={
                 'User-Agent': random_ua(),
@@ -295,7 +295,6 @@ class AntiBotDecisionTree:
             logger.debug("简单层失败: %s - %s", url[:50], e)
 
         # 检测验证码
-        import re
         has_captcha = bool(re.search(r'(captcha|验证码|verif[yi]|yanzhengma)', resp_text[:5000], re.I))
         if has_captcha:
             logger.info("检测到验证码，需 OCR 处理: %s", url[:50])

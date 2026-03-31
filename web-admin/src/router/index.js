@@ -6,6 +6,7 @@
  * - 未匹配路由统一重定向到仪表盘
  */
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '../stores/user.js'
 import MainLayout from '../layouts/MainLayout.vue'
 
 const routes = [
@@ -96,11 +97,13 @@ const routes = [
       {
         path: 'workers',
         name: 'WorkerStatus',
+        meta: { requiresAuth: true, roles: ['admin'] },
         component: () => import('../views/system/WorkerStatus.vue'),
       },
       {
         path: 'settings',
         name: 'Settings',
+        meta: { requiresAuth: true, roles: ['admin'] },
         component: () => import('../views/system/Settings.vue'),
       },
       {
@@ -111,6 +114,7 @@ const routes = [
       {
         path: 'users',
         name: 'UserManage',
+        meta: { requiresAuth: true, roles: ['admin'] },
         component: () => import('../views/system/UserManage.vue'),
       },
     ],
@@ -126,14 +130,22 @@ const router = createRouter({
   routes,
 })
 
-// 全局路由守卫：未登录时拦截并跳转到登录页
+// 全局路由守卫：未登录时拦截并跳转到登录页；检查角色权限
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   if (to.name !== 'Login' && !token) {
     next({ name: 'Login' })
-  } else {
-    next()
+    return
   }
+  // 路由级 RBAC：检查角色权限
+  if (to.meta.roles) {
+    const userStore = useUserStore()
+    if (!to.meta.roles.includes(userStore.role)) {
+      next({ name: 'Dashboard' })
+      return
+    }
+  }
+  next()
 })
 
 export default router

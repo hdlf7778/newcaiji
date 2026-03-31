@@ -10,7 +10,7 @@ from datetime import datetime
 
 import pymysql
 import config
-from core.database import get_db, detail_table_name, url_hash
+from core.database import get_db, detail_table_name, url_hash, _get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -23,16 +23,7 @@ class StorageWriter:
     def _get_conn(self):
         if self._conn:
             return self._conn
-        self._conn = pymysql.connect(
-            host=config.DB_HOST,
-            port=config.DB_PORT,
-            user=config.DB_USERNAME,
-            password=config.DB_PASSWORD,
-            database=config.DB_NAME,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=True,
-        )
+        self._conn = _get_connection()
         self._own_conn = True
         return self._conn
 
@@ -63,13 +54,14 @@ class StorageWriter:
 
         conn = self._get_conn()
 
-        # 写入 article_list
-        article_list_data['source_id'] = source_id
-        article_list_data['url_hash'] = url_hash(article_list_data['url'])
-        article_list_data.setdefault('has_detail', 1)
-        article_list_data.setdefault('author', None)
-        article_list_data.setdefault('summary', None)
-        article_list_data.setdefault('publish_date', None)
+        # Work on copies to avoid mutating caller dicts
+        list_data = {**article_list_data}
+        list_data['source_id'] = source_id
+        list_data['url_hash'] = url_hash(list_data['url'])
+        list_data.setdefault('has_detail', 1)
+        list_data.setdefault('author', None)
+        list_data.setdefault('summary', None)
+        list_data.setdefault('publish_date', None)
 
         sql_list = """INSERT INTO article_list
             (source_id, url, url_hash, title, publish_date, author, summary, has_detail)
@@ -78,7 +70,7 @@ class StorageWriter:
 
         with conn.cursor() as cur:
             try:
-                cur.execute(sql_list, article_list_data)
+                cur.execute(sql_list, list_data)
                 article_id = cur.lastrowid
             except pymysql.IntegrityError:
                 # url_hash 唯一索引冲突，已存在
@@ -86,22 +78,23 @@ class StorageWriter:
 
         # 写入 article_detail 分表
         table = detail_table_name(source_id)
-        detail_data['article_id'] = article_id
-        detail_data['source_id'] = source_id
-        detail_data.setdefault('title', article_list_data.get('title', ''))
-        detail_data.setdefault('url', article_list_data.get('url', ''))
-        detail_data.setdefault('publish_time', None)
-        detail_data.setdefault('publish_date', article_list_data.get('publish_date'))
-        detail_data.setdefault('author', article_list_data.get('author'))
-        detail_data.setdefault('source_name', None)
-        detail_data.setdefault('attachment_count', 0)
+        det_data = {**detail_data}
+        det_data['article_id'] = article_id
+        det_data['source_id'] = source_id
+        det_data.setdefault('title', list_data.get('title', ''))
+        det_data.setdefault('url', list_data.get('url', ''))
+        det_data.setdefault('publish_time', None)
+        det_data.setdefault('publish_date', list_data.get('publish_date'))
+        det_data.setdefault('author', list_data.get('author'))
+        det_data.setdefault('source_name', None)
+        det_data.setdefault('attachment_count', 0)
 
         # attachments 字段: list → JSON string
-        attachments = detail_data.get('attachments')
+        attachments = det_data.get('attachments')
         if isinstance(attachments, list):
-            detail_data['attachments'] = json.dumps(attachments, ensure_ascii=False)
+            det_data['attachments'] = json.dumps(attachments, ensure_ascii=False)
         elif attachments is None:
-            detail_data['attachments'] = None
+            det_data['attachments'] = None
 
         sql_detail = f"""INSERT INTO {table}
             (article_id, source_id, title, url, content, content_html,
@@ -111,10 +104,10 @@ class StorageWriter:
                     %(attachment_count)s, %(attachments)s)"""
 
         with conn.cursor() as cur:
-            cur.execute(sql_detail, detail_data)
+            cur.execute(sql_detail, det_data)
 
         logger.info("文章入库 article_id=%d source=%d table=%s title=%s",
-                     article_id, source_id, table, detail_data.get('title', '')[:30])
+                     article_id, source_id, table, det_data.get('title', '')[:30])
         return article_id
 
     def update_source_stats(self, source_id: int, new_count: int, last_date: str = None):

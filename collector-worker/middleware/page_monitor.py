@@ -56,7 +56,7 @@ class PageMonitor:
         result = MonitorResult()
 
         # 1. 内容变化检测（前 2000 字节 hash）
-        current_hash = hashlib.md5(html[:2000].encode()).hexdigest()
+        current_hash = hashlib.sha256(html[:2000].encode()).hexdigest()
         result.current_hash = current_hash
 
         hash_key = f"page_hash:{source_id}"

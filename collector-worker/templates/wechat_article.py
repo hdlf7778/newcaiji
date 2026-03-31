@@ -46,7 +46,7 @@ class WechatCrawler(BaseCrawlerTemplate):
             urls = [self.url]
 
         items = []
-        client = get_client()
+        client = await get_client()
         for url in urls:
             if 'mp.weixin.qq.com' not in url:
                 continue
@@ -56,7 +56,7 @@ class WechatCrawler(BaseCrawlerTemplate):
                 soup = BeautifulSoup(safe_decode(resp.content), 'lxml')
                 title_el = soup.select_one('#activity-name')
                 title = title_el.get_text(strip=True) if title_el else url.split('/')[-1]
-            except Exception:
+            except (httpx.HTTPError, ValueError, AttributeError):
                 title = url.split('/')[-1]
 
             items.append(ArticleItem(url=url, title=title))
@@ -66,7 +66,7 @@ class WechatCrawler(BaseCrawlerTemplate):
 
     async def fetch_detail(self, item: ArticleItem) -> ArticleContent:
         """提取微信公众号文章内容"""
-        client = get_client()
+        client = await get_client()
         resp = await client.get(item.url, headers=WECHAT_HEADERS)
         html = safe_decode(resp.content, detect_encoding(resp.content))
         soup = BeautifulSoup(html, 'lxml')

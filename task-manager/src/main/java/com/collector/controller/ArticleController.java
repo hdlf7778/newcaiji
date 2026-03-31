@@ -32,6 +32,8 @@ public class ArticleController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
 
+        pageSize = Math.min(pageSize, 200);
+
         LambdaQueryWrapper<ArticleList> wrapper = new LambdaQueryWrapper<>();
         if (sourceId != null) {
             wrapper.eq(ArticleList::getSourceId, sourceId);

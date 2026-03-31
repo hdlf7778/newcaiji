@@ -52,7 +52,18 @@ public class SourceDetectService {
             // Save generated rule
             saveDetectedRule(sourceId, result);
 
-            // Update source status to detected
+            // Update source template + status
+            // 写入检测到的模板类型
+            Object templateObj = result.get("template");
+            if (templateObj != null && !templateObj.toString().isBlank()) {
+                String tmplCode = templateObj.toString().toLowerCase().replace("-", "_");
+                for (com.collector.enums.TemplateType tt : com.collector.enums.TemplateType.values()) {
+                    if (tt.getCode().equals(tmplCode)) {
+                        source.setTemplate(tt);
+                        break;
+                    }
+                }
+            }
             source.setStatus(SourceStatus.DETECTED);
             sourceMapper.updateById(source);
 
@@ -148,31 +159,15 @@ public class SourceDetectService {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+
     private String toJsonString(Object obj) {
-        if (obj instanceof String) {
-            return (String) obj;
+        if (obj == null) return null;
+        if (obj instanceof String) return (String) obj;
+        try {
+            return JSON_MAPPER.writeValueAsString(obj);
+        } catch (Exception e) {
+            return obj.toString();
         }
-        if (obj instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) obj;
-            StringBuilder sb = new StringBuilder("{");
-            boolean first = true;
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (!first) sb.append(",");
-                sb.append("\"").append(entry.getKey()).append("\":");
-                Object val = entry.getValue();
-                if (val instanceof String) {
-                    sb.append("\"").append(val).append("\"");
-                } else if (val == null) {
-                    sb.append("null");
-                } else {
-                    sb.append(val);
-                }
-                first = false;
-            }
-            sb.append("}");
-            return sb.toString();
-        }
-        return obj.toString();
     }
 }

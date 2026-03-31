@@ -2,13 +2,13 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3307/collector?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: "collector123"
+    password: "DevRoot2026!"
 
   data:
     redis:
       host: localhost
       port: 6379
-      password: "collector_redis"
+      password: "DevRedis2026!"
 
 mybatis-plus:
   configuration:
@@ -17,9 +17,9 @@ mybatis-plus:
 collector:
   admin:
     username: admin
-    password-hash: "$2b$10$juchQKeDjBxIMx8AsidnBuOfv7eHU0sXKac1Jl191mXLf0UbyO5Vy"
+    password-hash: "$2b$10$SQkjKzJIHQmKCxUz3UiuRuQPl46LbhkcKsrKwx5S8hJJcQzdI0bEK"
   jwt:
-    secret: "dev-secret-key-must-be-at-least-64-bytes-long-for-hs512-algorithm-so-here-it-is-padded"
+    secret: "dev-local-jwt-secret-key-must-be-at-least-64-bytes-long-for-hs512-algorithm-padding-here"
 
 logging:
   level:

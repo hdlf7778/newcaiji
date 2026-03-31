@@ -45,12 +45,19 @@ request.interceptors.response.use(
     return body
   },
   (error) => {
-    // 401/403：token 无效或过期，清除登录态并跳转登录页
+    // 401 或 403：token 无效/过期/缺失 → 清除登录态并跳转登录页
     if (error.response?.status === 401 || error.response?.status === 403) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('username')
-      localStorage.removeItem('role')
-      window.location.href = '/login'
+      const token = localStorage.getItem('token')
+      if (!token || error.response?.status === 401) {
+        // 未认证：跳转登录
+        localStorage.removeItem('token')
+        localStorage.removeItem('username')
+        localStorage.removeItem('role')
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+      // 有 token 但 403：真正的权限不足
+      message.error('您没有权限执行此操作')
       return Promise.reject(error)
     }
     const msg = error.response?.data?.message || error.message || '请求失败'

@@ -42,7 +42,7 @@ class IframeLoaderCrawler(BaseCrawlerTemplate):
 
     async def fetch_list(self) -> list[ArticleItem]:
         """第一步: 获取 iframe 内容页的文章列表"""
-        client = get_client()
+        client = await get_client()
         max_items = self.list_rule.get('max_items', 20)
 
         # 策略1: 先访问主页，找 iframe src
@@ -119,7 +119,7 @@ class IframeLoaderCrawler(BaseCrawlerTemplate):
         第二步: 获取详情页
         dfwsrc 的详情页内容在 JS 的 innerHTML 赋值中（Unicode 转义 HTML）
         """
-        client = get_client()
+        client = await get_client()
         resp = await client.get(item.url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
 

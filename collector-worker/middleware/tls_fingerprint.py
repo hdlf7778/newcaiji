@@ -58,7 +58,7 @@ class TLSFingerprintFetcher:
             proxies=proxies,
             timeout=self.timeout,
             allow_redirects=True,
-            verify=False,
+            verify=True,
         )
 
         return TLSResponse(
@@ -71,7 +71,7 @@ class TLSFingerprintFetcher:
 
     async def fetch(self, url: str, headers: dict = None) -> "TLSResponse":
         """异步包装（在线程池中运行 sync 请求）"""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.fetch_sync, url, headers)
 
     def is_cloudflare_challenge(self, resp: "TLSResponse") -> bool:

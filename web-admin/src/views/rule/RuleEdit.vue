@@ -27,7 +27,7 @@
         </a-col>
         <a-col :span="12">
           <span style="color:#8c8c8c;font-size:13px;">网址：</span>
-          <a :href="sourceInfo.url" target="_blank" style="color:#1677ff;word-break:break-all;font-size:13px;">
+          <a :href="safeUrl(sourceInfo.url)" target="_blank" rel="noopener noreferrer" style="color:#1677ff;word-break:break-all;font-size:13px;">
             {{ sourceInfo.url || '—' }}
           </a>
         </a-col>
@@ -117,7 +117,7 @@
                   <div style="font-weight:600;font-size:13px;">{{ a.title }}</div>
                   <div style="font-size:12px;color:#8c8c8c;display:flex;gap:12px;margin-top:2px;">
                     <span v-if="a.publish_date || a.date">{{ a.publish_date || a.date }}</span>
-                    <a :href="a.url" target="_blank" style="color:#1677ff;word-break:break-all;">{{ (a.url || '').slice(0, 60) }}{{ (a.url || '').length > 60 ? '...' : '' }}</a>
+                    <a :href="safeUrl(a.url)" target="_blank" rel="noopener noreferrer" style="color:#1677ff;word-break:break-all;">{{ (a.url || '').slice(0, 60) }}{{ (a.url || '').length > 60 ? '...' : '' }}</a>
                   </div>
                 </div>
               </div>
@@ -161,6 +161,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import request from '../../api/request.js'
+import { safeUrl } from '../../utils/safeUrl.js'
 
 const route = useRoute()
 const ruleId = route.params.id
@@ -214,7 +215,7 @@ async function fetchRule() {
     if (rule.source_id) {
       try {
         const src = await request.get(`/api/sources/${rule.source_id}`)
-        sourceInfo.value = { id: src.id, name: src.name, url: src.url, template: src.template }
+        sourceInfo.value = { id: src.id, name: src.name, url: src.url, template: src.template || 'STATIC_LIST' }
       } catch { sourceInfo.value = { id: rule.source_id, name: `#${rule.source_id}`, url: '' } }
     }
   } catch {

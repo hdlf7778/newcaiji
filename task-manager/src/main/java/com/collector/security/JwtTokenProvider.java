@@ -35,6 +35,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
+                .issuer("collector")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -79,6 +80,7 @@ public class JwtTokenProvider {
     private Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
+                .requireIssuer("collector")
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

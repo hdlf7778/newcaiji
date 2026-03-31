@@ -39,6 +39,8 @@ public class DeadLetterController {
             @RequestParam(defaultValue = "1") long page,
             @RequestParam(defaultValue = "20") long size) {
 
+        size = Math.min(size, 200);
+
         LambdaQueryWrapper<DeadLetterQueue> wrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(errorType)) {
             wrapper.eq(DeadLetterQueue::getErrorType, errorType);

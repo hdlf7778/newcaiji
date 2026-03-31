@@ -2,6 +2,7 @@ package com.collector.dto;
 
 import com.collector.enums.TemplateType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
@@ -11,6 +12,7 @@ public class SourceCreateDTO {
     private String name;
 
     @NotBlank(message = "URL不能为空")
+    @Pattern(regexp = "^https?://.+", message = "URL必须以http://或https://开头")
     private String url;
 
     private String columnName;

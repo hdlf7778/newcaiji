@@ -34,3 +34,9 @@ docker/redis-data/
 
 # Test artifacts
 tests/captcha_samples/
+
+# Data files
+*.xlsx
+
+# Collector worker env (allow example only)
+!collector-worker/.env.example

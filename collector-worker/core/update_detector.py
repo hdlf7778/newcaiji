@@ -50,7 +50,7 @@ class UpdateDetector:
         own_client = False
         if client is None:
             client = httpx.AsyncClient(
-                verify=False, follow_redirects=True,
+                verify=True, follow_redirects=True,
                 headers=config.DEFAULT_HEADERS, timeout=10,
             )
             own_client = True
@@ -164,7 +164,7 @@ class UpdateDetector:
         except Exception:
             return True  # 请求失败，默认有更新
 
-        current_hash = hashlib.md5(body_prefix).hexdigest()
+        current_hash = hashlib.sha256(body_prefix).hexdigest()
         hash_key = KEY_BODY_HASH.format(source_id=source_id)
         prev_hash = self.r.get(hash_key)
         self.r.set(hash_key, current_hash, ex=TTL)

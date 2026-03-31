@@ -71,12 +71,40 @@
           type="primary"
           size="large"
           :loading="importing"
-          :disabled="!previewData.length"
+          :disabled="!previewData.length && !rawFile"
           @click="startImport"
         >
           <template #icon><UploadOutlined /></template>
-          开始导入（{{ totalRows }} 条）
+          开始导入（{{ totalRows || '?' }} 条）
         </a-button>
+      </div>
+
+      <!-- Import progress -->
+      <div v-if="importing || importProgressStatus === 'exception' || importProgressStatus === 'success'" style="margin-top:16px;">
+        <a-progress
+          :percent="importProgress"
+          :status="importProgressStatus"
+          :stroke-color="importProgress < 100 ? undefined : '#52c41a'"
+          :format="() => importProgress + '%'"
+        />
+        <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:13px;color:#8c8c8c;">{{ importProgressText }}</span>
+          <a-button
+            v-if="importing"
+            type="text"
+            danger
+            size="small"
+            @click="cancelImport"
+          >
+            终止导入
+          </a-button>
+        </div>
+        <div v-if="importedCount + duplicateCount + invalidCount > 0" style="margin-top:6px;display:flex;gap:16px;font-size:13px;">
+          <span style="color:#52c41a;">成功 {{ importedCount }}</span>
+          <span style="color:#fa8c16;">重复 {{ duplicateCount }}</span>
+          <span style="color:#ff4d4f;">失败 {{ invalidCount }}</span>
+          <span style="color:#8c8c8c;">共 {{ totalRows }} 条</span>
+        </div>
       </div>
     </a-card>
 
@@ -138,14 +166,25 @@ import {
   CloseCircleOutlined,
 } from '@ant-design/icons-vue'
 import { sourceApi } from '../../api/source.js'
+import request from '../../api/request.js'
 
 const fileList = ref([])
 const fileName = ref('')
 const totalRows = ref(0)
 const previewData = ref([])
+const allParsedRows = ref([])  // CSV: all parsed rows for row-by-row import
 const importing = ref(false)
+const importProgress = ref(0)
+const importProgressStatus = ref('active')
+const importProgressText = ref('')
+const importedCount = ref(0)
+const duplicateCount = ref(0)
+const invalidCount = ref(0)
 const resultVisible = ref(false)
 const importResult = ref(null)
+let progressTimer = null
+let abortController = null
+let cancelled = false
 
 // Store raw file for actual upload
 let rawFile = null
@@ -238,6 +277,7 @@ function parseCsv(content) {
   }
 
   totalRows.value = rows.length
+  allParsedRows.value = rows
   previewData.value = rows.slice(0, 10)
 }
 
@@ -290,26 +330,175 @@ function clearFile() {
   rawFile = null
   fileName.value = ''
   previewData.value = []
+  allParsedRows.value = []
   totalRows.value = 0
   fileList.value = []
 }
 
+function resetProgress() {
+  importProgress.value = 0
+  importProgressStatus.value = 'active'
+  importProgressText.value = ''
+  importedCount.value = 0
+  duplicateCount.value = 0
+  invalidCount.value = 0
+  cancelled = false
+}
+
+function startProcessingProgress() {
+  let current = importProgress.value
+  progressTimer = setInterval(() => {
+    if (current < 95) {
+      current += Math.random() * 3 + 0.5
+      if (current > 95) current = 95
+      importProgress.value = Math.round(current)
+    }
+  }, 500)
+}
+
+function stopProcessingProgress() {
+  if (progressTimer) {
+    clearInterval(progressTimer)
+    progressTimer = null
+  }
+}
+
+function cancelImport() {
+  cancelled = true
+  if (abortController) {
+    abortController.abort()
+    abortController = null
+  }
+  stopProcessingProgress()
+  importing.value = false
+  importProgressStatus.value = 'exception'
+  const done = importedCount.value + duplicateCount.value + invalidCount.value
+  importProgressText.value = `\u5DF2\u7EC8\u6B62\u5BFC\u5165\uFF08\u5DF2\u5904\u7406 ${done} / ${totalRows.value} \u6761\uFF09`
+  message.warning('\u5BFC\u5165\u5DF2\u7EC8\u6B62')
+}
+
+/** CSV: batch import with real progress (200 items per batch) */
+async function importInBatches() {
+  const rows = allParsedRows.value
+  const total = rows.length
+  const BATCH_SIZE = 200
+  const allErrors = []
+  let processed = 0
+
+  for (let start = 0; start < total; start += BATCH_SIZE) {
+    if (cancelled) return
+
+    const chunk = rows.slice(start, start + BATCH_SIZE)
+    const items = chunk.map((row) => ({
+      url: row.url || '',
+      name: row.name || row.url || '',
+      column_name: row.columnName || '',
+      region: row.region || '',
+      priority: parseInt(row.priority) || 6,
+      template: row.templateType || null,
+      platform: row.platform || '',
+    }))
+
+    try {
+      const res = await sourceApi.batchCreate(items)
+      importedCount.value += res?.imported || 0
+      duplicateCount.value += res?.duplicates || 0
+      invalidCount.value += res?.invalid || 0
+      if (res?.errors?.length) {
+        for (const err of res.errors) {
+          allErrors.push({ row: start + err.row + 1, message: err.reason || err.message })
+        }
+      }
+    } catch (e) {
+      if (cancelled || e?.code === 'ERR_CANCELED' || e?.name === 'CanceledError') return
+      invalidCount.value += chunk.length
+      allErrors.push({ row: start + 2, message: e?.message || '\u6279\u91CF\u521B\u5EFA\u5931\u8D25' })
+    }
+
+    processed = Math.min(start + BATCH_SIZE, total)
+    importProgress.value = Math.round((processed / total) * 100)
+    importProgressText.value = `\u6B63\u5728\u5BFC\u5165\u2026 ${processed} / ${total}`
+  }
+
+  return {
+    total,
+    imported: importedCount.value,
+    duplicates: duplicateCount.value,
+    invalid: invalidCount.value,
+    errors: allErrors.slice(0, 50),
+  }
+}
+
+/** Excel: file upload with simulated progress */
+async function importViaFileUpload() {
+  abortController = new AbortController()
+  let uploadDone = false
+  importProgressText.value = '\u6B63\u5728\u4E0A\u4F20\u6587\u4EF6\u2026'
+
+  const formData = new FormData()
+  formData.append('file', rawFile)
+
+  const res = await request.post('/api/sources/import', formData, {
+    timeout: 120000,
+    signal: abortController.signal,
+    onUploadProgress: (e) => {
+      if (e.total) {
+        const pct = Math.round((e.loaded / e.total) * 50)
+        importProgress.value = pct
+        if (e.loaded < e.total) {
+          importProgressText.value = `\u6B63\u5728\u4E0A\u4F20\u6587\u4EF6\u2026 ${Math.round(e.loaded / 1024)}KB / ${Math.round(e.total / 1024)}KB`
+        } else if (!uploadDone) {
+          uploadDone = true
+          importProgress.value = 50
+          importProgressText.value = `\u670D\u52A1\u7AEF\u6B63\u5728\u89E3\u6790\u5E76\u5BFC\u5165\u2026`
+          startProcessingProgress()
+        }
+      }
+    },
+  })
+
+  stopProcessingProgress()
+  importedCount.value = res?.imported || 0
+  duplicateCount.value = res?.duplicates || 0
+  invalidCount.value = res?.invalid || 0
+  return res
+}
+
 async function startImport() {
   if (!rawFile) {
-    message.warning('请先选择文件')
+    message.warning('\u8BF7\u5148\u9009\u62E9\u6587\u4EF6')
     return
   }
+
   importing.value = true
+  resetProgress()
+
+  const isCsv = rawFile.name.toLowerCase().endsWith('.csv') && allParsedRows.value.length > 0
+
   try {
-    const formData = new FormData()
-    formData.append('file', rawFile)
-    const res = await sourceApi.import(formData)
+    let res
+    if (isCsv) {
+      res = await importInBatches()
+    } else {
+      res = await importViaFileUpload()
+    }
+
+    if (cancelled) return
+
+    importProgress.value = 100
+    importProgressStatus.value = 'success'
+    importProgressText.value = `\u5BFC\u5165\u5B8C\u6210\uFF1A\u6210\u529F ${importedCount.value}\u3001\u91CD\u590D ${duplicateCount.value}\u3001\u5931\u8D25 ${invalidCount.value}`
+
     importResult.value = res || {}
     resultVisible.value = true
-  } catch {
-    // handled globally
+  } catch (e) {
+    stopProcessingProgress()
+    if (cancelled || e?.code === 'ERR_CANCELED' || e?.name === 'CanceledError') return
+    importProgressStatus.value = 'exception'
+    importProgressText.value = '\u5BFC\u5165\u5931\u8D25'
   } finally {
     importing.value = false
+    abortController = null
   }
 }
 

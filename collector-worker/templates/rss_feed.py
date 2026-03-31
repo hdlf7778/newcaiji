@@ -29,7 +29,7 @@ class RssCrawler(BaseCrawlerTemplate):
 
     async def fetch_list(self) -> list[ArticleItem]:
         """第一步: 解析 RSS/Atom feed"""
-        client = get_client()
+        client = await get_client()
         max_items = self.list_rule.get('max_items', 20)
 
         resp = await client.get(self.url)
@@ -67,7 +67,7 @@ class RssCrawler(BaseCrawlerTemplate):
         第二步: 获取文章全文
         策略: 先检查 feed entry 是否已含全文（content/summary），有则直接用；否则 GET 原文页面
         """
-        client = get_client()
+        client = await get_client()
 
         # 先从 feed 中找全文（避免多余请求）
         feed_content = self._get_feed_content(item.url)
@@ -148,6 +148,6 @@ class RssCrawler(BaseCrawlerTemplate):
         try:
             dt = parsedate_to_datetime(raw)
             return dt.strftime('%Y-%m-%d')
-        except Exception:
+        except (ValueError, TypeError, OverflowError):
             pass
         return None

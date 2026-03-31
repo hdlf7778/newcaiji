@@ -22,6 +22,9 @@ public class SourceQueryDTO {
 
     private Integer healthScoreMax;
 
+    /** 试采评分范围: high(>=0.8), medium(0.6-0.8), low(<0.6), none(未试采) */
+    private String scoreRange;
+
     private Integer page = 1;
 
     private Integer size = 20;

@@ -25,11 +25,12 @@ public class AuthController {
     private final Map<String, List<Long>> loginAttempts = new ConcurrentHashMap<>();
     private static final int MAX_ATTEMPTS = 5;
     private static final long LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+    private static final int MAX_TRACKED_IPS = 10_000;
 
     @Value("${collector.admin.username:admin}")
     private String adminUsername;
 
-    @Value("${collector.admin.password-hash:$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy}")
+    @Value("${collector.admin.password-hash}")
     private String adminPasswordHash;
 
     /**
@@ -40,6 +41,9 @@ public class AuthController {
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody Map<String, String> credentials, HttpServletRequest request) {
         String clientIp = request.getRemoteAddr();
+        if (loginAttempts.size() > MAX_TRACKED_IPS) {
+            loginAttempts.clear();
+        }
         List<Long> attempts = loginAttempts.computeIfAbsent(clientIp, k -> new ArrayList<>());
         long now = System.currentTimeMillis();
         attempts.removeIf(t -> now - t > LOCKOUT_MS);

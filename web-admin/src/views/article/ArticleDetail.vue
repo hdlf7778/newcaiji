@@ -28,7 +28,7 @@
               <template v-if="article.columnName"> / {{ article.columnName }}</template>
             </a-descriptions-item>
             <a-descriptions-item label="原文URL" :span="2">
-              <a :href="article.url" target="_blank" style="color:#1677ff;word-break:break-all;">
+              <a :href="safeUrl(article.url)" target="_blank" rel="noopener noreferrer" style="color:#1677ff;word-break:break-all;">
                 {{ article.url }}
                 <LinkOutlined style="margin-left:4px;" />
               </a>
@@ -66,7 +66,7 @@
                   <a-tag :color="fileTypeColor(item.fileType)">
                     {{ item.fileType || 'FILE' }}
                   </a-tag>
-                  <a :href="item.fileUrl" target="_blank" style="color:#1677ff;">
+                  <a :href="safeUrl(item.fileUrl)" target="_blank" rel="noopener noreferrer" style="color:#1677ff;">
                     {{ item.fileName || item.fileUrl }}
                   </a>
                   <DownloadOutlined />
@@ -89,6 +89,19 @@ import { message } from 'ant-design-vue'
 import { LinkOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 import { articleApi } from '../../api/article.js'
 import DOMPurify from 'dompurify'
+import { safeUrl } from '../../utils/safeUrl.js'
+
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.hasAttribute('href')) {
+    const href = node.getAttribute('href') || ''
+    if (/^(javascript|data):/i.test(href.trim())) {
+      node.removeAttribute('href')
+    }
+  }
+  if (node.hasAttribute('target')) {
+    node.setAttribute('rel', 'noopener noreferrer')
+  }
+})
 
 const route = useRoute()
 const articleId = route.params.id
@@ -98,7 +111,7 @@ const loading = ref(false)
 
 const sanitizedHtml = computed(() => {
   const raw = article.value?.contentHtml || article.value?.content_html || ''
-  return DOMPurify.sanitize(raw, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'strong', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'span', 'div', 'img', 'blockquote', 'pre', 'code'], ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target'] })
+  return DOMPurify.sanitize(raw, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'strong', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'span', 'div', 'img', 'blockquote', 'pre', 'code'], ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target'] })
 })
 
 const attachments = computed(() => {

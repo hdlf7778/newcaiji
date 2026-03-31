@@ -97,7 +97,7 @@ class CaptchaSolver:
                               captcha_type: CaptchaType = None) -> str:
         """从 URL 下载验证码图片并识别"""
         if client is None:
-            async with httpx.AsyncClient(verify=False, timeout=10) as c:
+            async with httpx.AsyncClient(verify=True, timeout=10) as c:
                 resp = await c.get(img_url)
                 img_bytes = resp.content
         else:
@@ -163,7 +163,7 @@ class CaptchaSolver:
             result = str(_safe_eval_simple(expr_clean))
             logger.debug("计算验证码结果: %s = %s", expr_clean, result)
             return result
-        except Exception:
+        except (ValueError, ZeroDivisionError, IndexError):
             return raw
 
     def _solve_slider(self, img_bytes: bytes) -> str:
@@ -183,7 +183,7 @@ class CaptchaSolver:
         ocr = _get_ocr()
         try:
             raw = ocr.classification(img_bytes)
-        except Exception:
+        except (RuntimeError, ValueError, OSError):
             return CaptchaType.TEXT
 
         # 包含运算符 → 计算题
@@ -198,7 +198,7 @@ class CaptchaSolver:
             w, h = img.size
             if w / h > 3:
                 return CaptchaType.SLIDER
-        except Exception:
+        except (OSError, ValueError, ZeroDivisionError):
             pass
 
         return CaptchaType.TEXT

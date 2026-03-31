@@ -76,7 +76,7 @@ class SmartVerifier:
         soup = BeautifulSoup(html, 'lxml')
 
         # ---- 第一层: 页面内容变化检测 ----
-        current_hash = hashlib.md5(html[:2000].encode()).hexdigest()
+        current_hash = hashlib.sha256(html[:2000].encode()).hexdigest()
         result.current_hash = current_hash
 
         hash_key = f"page_hash:{source_id}"

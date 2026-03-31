@@ -81,7 +81,7 @@ class ApiJsonCrawler(BaseCrawlerTemplate):
 
     async def fetch_list(self) -> list[ArticleItem]:
         """第一步: 请求列表 API，解析 JSON"""
-        client = get_client()
+        client = await get_client()
         max_items = self.list_rule.get('max_items', 20)
 
         # 构造请求
@@ -98,7 +98,7 @@ class ApiJsonCrawler(BaseCrawlerTemplate):
         # 解析 JSON
         try:
             data = resp.json()
-        except Exception:
+        except (ValueError, KeyError):
             logger.warning("API响应非JSON source=%d url=%s status=%d", self.source_id, api_url[:60], resp.status_code)
             return items
 
@@ -153,7 +153,7 @@ class ApiJsonCrawler(BaseCrawlerTemplate):
 
     async def fetch_detail(self, item: ArticleItem) -> ArticleContent:
         """第二步: 获取文章详情（JSON API 或 HTML 页面）"""
-        client = get_client()
+        client = await get_client()
 
         if self.detail_is_html:
             return await self._fetch_detail_html(client, item)
@@ -203,7 +203,7 @@ class ApiJsonCrawler(BaseCrawlerTemplate):
                                 'file_url': att.get('url', '') or att.get('fileUrl', ''),
                                 'file_type': att.get('type', '') or att.get('fileType', 'unknown'),
                             })
-        except Exception:
+        except (ValueError, KeyError, TypeError):
             # JSON 解析失败，fallback 到 HTML
             return await self._fetch_detail_html(client, item)
 

@@ -30,17 +30,20 @@ def get_db():
         conn.close()
 
 
+_VALID_DETAIL_TABLES = frozenset(f"article_detail_{i}" for i in range(16))
+
+
 def detail_table_name(source_id: int) -> str:
-    """分表路由: article_detail_{source_id % 16}"""
-    index = int(source_id) % 16
-    if not (0 <= index <= 15):
-        raise ValueError(f"Invalid table index: {index}")
-    return f"article_detail_{index}"
+    """Get sharded detail table name with allowlist validation."""
+    table = f"article_detail_{int(source_id) % 16}"
+    if table not in _VALID_DETAIL_TABLES:
+        raise ValueError(f"Invalid table name: {table}")
+    return table
 
 
 def url_hash(url: str) -> str:
-    """URL MD5 哈希（用于 article_list 去重）"""
-    return hashlib.md5(url.encode()).hexdigest()
+    """URL SHA256 哈希（用于 article_list 去重）"""
+    return hashlib.sha256(url.encode()).hexdigest()
 
 
 def article_exists(conn, url: str) -> bool:

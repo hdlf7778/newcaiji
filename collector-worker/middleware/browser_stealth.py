@@ -120,7 +120,7 @@ class BrowserStealthFetcher:
     async def fetch(self, url: str, wait_ms: int = 5000) -> dict:
         """异步包装"""
         import asyncio
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.fetch_sync, url, wait_ms)
 
     @staticmethod

@@ -52,10 +52,13 @@
         @change="onTableChange"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'source_id'">
+          <template v-if="column.key === 'source_name'">
             <router-link :to="`/sources/${record.source_id}`" style="color:#1677ff;">
-              {{ sourceNameMap[record.source_id] || `#${record.source_id}` }}
+              {{ sourceInfoMap[record.source_id]?.name || `#${record.source_id}` }}
             </router-link>
+          </template>
+          <template v-if="column.key === 'column_name'">
+            {{ sourceInfoMap[record.source_id]?.column_name || '—' }}
           </template>
           <template v-if="column.key === 'generated_by'">
             <a-tag :color="genModeColor(record.generated_by)">
@@ -81,6 +84,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import request from '../../api/request.js'
 import { message, Modal } from 'ant-design-vue'
 import { ruleApi } from '../../api/rule.js'
+import { useSourceInfo } from '../../composables/useSourceInfo.js'
 
 const query = reactive({
   templateType: '',
@@ -102,30 +106,16 @@ const pagination = computed(() => ({
 }))
 
 const columns = [
-  { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-  { title: '采集源', dataIndex: 'source_id', key: 'source_id', width: 200 },
-  { title: '生成方式', dataIndex: 'generated_by', key: 'generated_by', width: 120 },
-  { title: '版本', dataIndex: 'rule_version', key: 'rule_version', width: 70 },
-  { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', width: 180 },
+  { title: 'ID', dataIndex: 'id', key: 'id', width: 50 },
+  { title: '网站名称', dataIndex: 'source_id', key: 'source_name', width: 160 },
+  { title: '栏目名称', dataIndex: 'source_id', key: 'column_name', width: 120 },
+  { title: '生成方式', dataIndex: 'generated_by', key: 'generated_by', width: 100 },
+  { title: '版本', dataIndex: 'rule_version', key: 'rule_version', width: 60 },
+  { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', width: 170 },
   { title: '操作', key: 'action', width: 140, fixed: 'right' },
 ]
 
-// 采集源名称缓存：一次性加载前 200 条（超过 200 条时显示不全）
-const sourceNameMap = ref({})
-async function loadSourceNames() {
-  try {
-    const res = await request.get('/api/sources', { params: { page: 1, pageSize: 200 } })
-    const records = res?.records || []
-    for (const s of records) {
-      sourceNameMap.value[s.id] = s.name
-    }
-  } catch { /* ignore */ }
-}
-
-function templateColor(type) {
-  const map = { A: 'purple', B: 'orange', C: 'blue', D: 'purple', G: 'red', H: 'green', I: 'cyan', J: 'default' }
-  return map[type] || 'default'
-}
+const { sourceInfoMap, loadForTable } = useSourceInfo()
 
 function genModeColor(mode) {
   const map = { llm: 'blue', manual: 'green', platform: 'cyan' }
@@ -148,6 +138,8 @@ async function fetchList() {
     const res = await ruleApi.list(params)
     const page = res || {}
     tableData.value = page.records || (Array.isArray(page) ? page : [])
+    // 加载当前页规则关联的采集源名称
+    loadForTable(tableData.value)
     total.value = page.total || 0
   } catch {
     // error handled globally
@@ -185,7 +177,6 @@ function onDelete(record) {
 }
 
 onMounted(() => {
-  loadSourceNames()
   fetchList()
 })
 </script>

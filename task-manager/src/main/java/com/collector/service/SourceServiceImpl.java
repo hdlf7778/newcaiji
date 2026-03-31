@@ -1,6 +1,7 @@
 package com.collector.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.collector.common.BusinessException;
@@ -21,6 +22,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,6 +47,10 @@ public class SourceServiceImpl implements SourceService {
 
     /** URL 格式校验：要求以 http:// 或 https:// 开头且包含至少一个点号 */
     private static final Pattern URL_PATTERN = Pattern.compile("^https?://.+\\..+");
+
+    private static final Set<String> ALLOWED_GROUP_COLUMNS = Set.of("status", "template", "category", "region");
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final CollectorSourceMapper sourceMapper;
     private final CollectorLogMapper logMapper;
@@ -79,6 +86,17 @@ public class SourceServiceImpl implements SourceService {
         }
         if (query.getHealthScoreMax() != null) {
             wrapper.le(CollectorSource::getHealthScore, query.getHealthScoreMax());
+        }
+        // 试采评分范围筛选
+        if (StringUtils.hasText(query.getScoreRange())) {
+            switch (query.getScoreRange()) {
+                case "high" -> wrapper.ge(CollectorSource::getTrialScore, 0.8);
+                case "medium" -> wrapper.ge(CollectorSource::getTrialScore, 0.6)
+                        .lt(CollectorSource::getTrialScore, 0.8);
+                case "low" -> wrapper.isNotNull(CollectorSource::getTrialScore)
+                        .lt(CollectorSource::getTrialScore, 0.6);
+                case "none" -> wrapper.isNull(CollectorSource::getTrialScore);
+            }
         }
 
         wrapper.orderByDesc(CollectorSource::getCreatedAt);
@@ -222,6 +240,63 @@ public class SourceServiceImpl implements SourceService {
         sourceMapper.deleteById(id);
     }
 
+    // --------------------------------------------------------------- Batch Create
+
+    @Override
+    public SourceImportDTO batchCreate(List<SourceCreateDTO> items) {
+        int total = items.size(), imported = 0, duplicates = 0, invalid = 0;
+        List<SourceImportDTO.ErrorItem> errors = new ArrayList<>();
+
+        for (int i = 0; i < items.size(); i++) {
+            SourceCreateDTO dto = items.get(i);
+            String url = dto.getUrl();
+            String name = dto.getName();
+
+            if (!StringUtils.hasText(url) || !URL_PATTERN.matcher(url).matches()) {
+                invalid++;
+                errors.add(SourceImportDTO.ErrorItem.builder().row(i + 1).url(url).reason("URL格式不合法").build());
+                continue;
+            }
+            if (!StringUtils.hasText(name)) {
+                name = url;
+            }
+
+            // Dedup
+            LambdaQueryWrapper<CollectorSource> dup = new LambdaQueryWrapper<CollectorSource>()
+                    .eq(CollectorSource::getUrl, url);
+            if (StringUtils.hasText(dto.getColumnName())) {
+                dup.eq(CollectorSource::getColumnName, dto.getColumnName());
+            } else {
+                dup.isNull(CollectorSource::getColumnName);
+            }
+            if (sourceMapper.selectCount(dup) > 0) {
+                duplicates++;
+                continue;
+            }
+
+            TemplateType templateType = dto.getTemplate();
+            int prio = dto.getPriority() != null ? dto.getPriority() : 5;
+
+            CollectorSource source = CollectorSource.builder()
+                    .url(url)
+                    .name(name)
+                    .columnName(StringUtils.hasText(dto.getColumnName()) ? dto.getColumnName() : null)
+                    .region(StringUtils.hasText(dto.getRegion()) ? dto.getRegion() : null)
+                    .platform(StringUtils.hasText(dto.getPlatform()) ? dto.getPlatform() : null)
+                    .priority(prio)
+                    .template(templateType)
+                    .status(SourceStatus.PENDING_DETECT)
+                    .build();
+            sourceMapper.insert(source);
+            imported++;
+        }
+
+        return SourceImportDTO.builder()
+                .total(total).imported(imported).duplicates(duplicates).invalid(invalid)
+                .errors(errors.size() > 50 ? errors.subList(0, 50) : errors)
+                .build();
+    }
+
     // --------------------------------------------------------------- Import
 
     @Override
@@ -330,23 +405,24 @@ public class SourceServiceImpl implements SourceService {
 
     @Override
     public SourceStatisticsVO statistics() {
-        List<CollectorSource> all = sourceMapper.selectList(null);
+        long total = sourceMapper.selectCount(null);
 
-        long total = all.size();
+        // GROUP BY status（1 条 SQL 代替 13 次 COUNT）
+        Map<String, Long> statusCounts = groupCount("status");
 
-        Map<String, Long> statusCounts = all.stream()
-                .filter(s -> s.getStatus() != null)
-                .collect(Collectors.groupingBy(s -> s.getStatus().getCode(), Collectors.counting()));
+        // GROUP BY template（1 条 SQL 代替 10 次 COUNT）
+        Map<String, Long> templateCounts = groupCount("template");
 
-        Map<String, Long> templateCounts = all.stream()
-                .filter(s -> s.getTemplate() != null)
-                .collect(Collectors.groupingBy(s -> s.getTemplate().getCode(), Collectors.counting()));
-
+        // 健康分分布（4 条 SQL，无法用 GROUP BY 简化）
         Map<String, Long> healthDistribution = new LinkedHashMap<>();
-        healthDistribution.put("excellent", all.stream().filter(s -> s.getHealthScore() != null && s.getHealthScore() >= 90).count());
-        healthDistribution.put("good", all.stream().filter(s -> s.getHealthScore() != null && s.getHealthScore() >= 70 && s.getHealthScore() < 90).count());
-        healthDistribution.put("warning", all.stream().filter(s -> s.getHealthScore() != null && s.getHealthScore() >= 50 && s.getHealthScore() < 70).count());
-        healthDistribution.put("danger", all.stream().filter(s -> s.getHealthScore() != null && s.getHealthScore() < 50).count());
+        healthDistribution.put("excellent", sourceMapper.selectCount(
+                new LambdaQueryWrapper<CollectorSource>().ge(CollectorSource::getHealthScore, 90)));
+        healthDistribution.put("good", sourceMapper.selectCount(
+                new LambdaQueryWrapper<CollectorSource>().ge(CollectorSource::getHealthScore, 70).lt(CollectorSource::getHealthScore, 90)));
+        healthDistribution.put("warning", sourceMapper.selectCount(
+                new LambdaQueryWrapper<CollectorSource>().ge(CollectorSource::getHealthScore, 50).lt(CollectorSource::getHealthScore, 70)));
+        healthDistribution.put("danger", sourceMapper.selectCount(
+                new LambdaQueryWrapper<CollectorSource>().lt(CollectorSource::getHealthScore, 50)));
 
         return SourceStatisticsVO.builder()
                 .total(total)
@@ -358,11 +434,25 @@ public class SourceServiceImpl implements SourceService {
 
     @Override
     public Map<String, Long> statsByStatus() {
-        List<CollectorSource> all = sourceMapper.selectList(
-                new LambdaQueryWrapper<CollectorSource>().select(CollectorSource::getStatus));
-        return all.stream()
-                .filter(s -> s.getStatus() != null)
-                .collect(Collectors.groupingBy(s -> s.getStatus().getCode(), Collectors.counting()));
+        return groupCount("status");
+    }
+
+    /** 通用 GROUP BY 聚合：SELECT {column}, COUNT(*) FROM collector_source GROUP BY {column} */
+    private Map<String, Long> groupCount(String column) {
+        if (!ALLOWED_GROUP_COLUMNS.contains(column)) {
+            throw new IllegalArgumentException("Invalid group column: " + column);
+        }
+        Map<String, Long> result = new LinkedHashMap<>();
+        List<Map<String, Object>> rows = sourceMapper.selectMaps(
+                new QueryWrapper<CollectorSource>()
+                        .select(column + " as k", "COUNT(*) as cnt")
+                        .groupBy(column));
+        for (Map<String, Object> row : rows) {
+            String key = row.get("k") != null ? row.get("k").toString() : null;
+            Long cnt = row.get("cnt") != null ? ((Number) row.get("cnt")).longValue() : 0;
+            if (key != null && cnt > 0) result.put(key, cnt);
+        }
+        return result;
     }
 
     // --------------------------------------------------------- Private helpers
@@ -415,22 +505,20 @@ public class SourceServiceImpl implements SourceService {
         }
     }
 
-    /**
-     * 手动拼接规则摘要 JSON — 存在注入风险
-     * <p>
-     * 如果 generatedBy、listRule、detailRule 包含双引号或反斜杠等特殊字符，
-     * 会导致生成的 JSON 格式错误。建议改用 Jackson ObjectMapper 序列化。
-     * </p>
-     */
+    /** 使用 Jackson ObjectMapper 安全序列化规则摘要 JSON */
     private String buildRulInfoJson(CollectorRule rule) {
-        return String.format(
-                "{\"id\":%d,\"ruleVersion\":%s,\"generatedBy\":\"%s\",\"listRule\":%s,\"detailRule\":%s}",
-                rule.getId(),
-                rule.getRuleVersion() != null ? rule.getRuleVersion().toString() : "null",
-                rule.getGeneratedBy() != null ? rule.getGeneratedBy() : "",
-                rule.getListRule() != null ? rule.getListRule() : "null",
-                rule.getDetailRule() != null ? rule.getDetailRule() : "null"
-        );
+        try {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", rule.getId());
+            map.put("ruleVersion", rule.getRuleVersion());
+            map.put("generatedBy", rule.getGeneratedBy());
+            map.put("listRule", rule.getListRule());
+            map.put("detailRule", rule.getDetailRule());
+            return OBJECT_MAPPER.writeValueAsString(map);
+        } catch (Exception e) {
+            log.warn("Failed to serialize rule info for ruleId={}", rule.getId(), e);
+            return "{}";
+        }
     }
 
     // ------------------------------------------------------- CSV / Excel 导入
@@ -442,6 +530,41 @@ public class SourceServiceImpl implements SourceService {
      * 注意：CSV 解析使用简单 split(",")，无法处理字段内含逗号（带引号）的情况。
      * </p>
      */
+    /** 根据 CSV 表头构建列名 → 索引映射 */
+    private Map<String, Integer> buildCsvHeaderMap(String headerLine) {
+        Map<String, List<String>> aliases = Map.of(
+                "url", List.of("url", "URL", "链接", "网址", "网站链接", "采集入口"),
+                "name", List.of("name", "Name", "网站名称", "名称", "站点名称"),
+                "columnName", List.of("column_name", "columnName", "栏目名称", "栏目"),
+                "region", List.of("region", "Region", "地区"),
+                "category", List.of("category", "Category", "分类"),
+                "priority", List.of("priority", "Priority", "优先级"),
+                "template", List.of("template", "templateType", "template_type", "模板", "模板类型"),
+                "platform", List.of("platform", "Platform", "平台")
+        );
+        String[] headers = headerLine.split(",", -1);
+        Map<String, Integer> map = new HashMap<>();
+        for (var entry : aliases.entrySet()) {
+            map.put(entry.getKey(), -1);
+            for (int i = 0; i < headers.length; i++) {
+                String h = headers[i].trim().replace("\"", "");
+                for (String alias : entry.getValue()) {
+                    if (alias.equalsIgnoreCase(h)) {
+                        map.put(entry.getKey(), i);
+                        break;
+                    }
+                }
+                if (map.get(entry.getKey()) >= 0) break;
+            }
+        }
+        return map;
+    }
+
+    private String getCsvField(String[] cols, Map<String, Integer> headerMap, String field) {
+        int idx = headerMap.getOrDefault(field, -1);
+        return idx >= 0 && idx < cols.length ? cols[idx].trim().replace("\"", "") : "";
+    }
+
     private SourceImportDTO importFromCsv(MultipartFile file, String platformOverride, Integer defaultPriority) {
         SourceImportDTO.SourceImportDTOBuilder result = SourceImportDTO.builder();
         List<SourceImportDTO.ErrorItem> errors = new ArrayList<>();
@@ -450,10 +573,16 @@ public class SourceServiceImpl implements SourceService {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(file.getInputStream(), "UTF-8"))) {
 
-            String headerLine = reader.readLine(); // skip header
+            String headerLine = reader.readLine();
             if (headerLine == null) {
                 return result.total(0).imported(0).duplicates(0).invalid(0).errors(errors).build();
             }
+
+            // BOM removal
+            if (headerLine.startsWith("\uFEFF")) headerLine = headerLine.substring(1);
+
+            Map<String, Integer> headerMap = buildCsvHeaderMap(headerLine);
+            log.info("CSV header mapping: {}", headerMap);
 
             String line;
             int row = 1;
@@ -463,14 +592,13 @@ public class SourceServiceImpl implements SourceService {
                 total++;
 
                 String[] cols = line.split(",", -1);
-                // Expected columns: url,name,column_name,region,category,priority,template,platform
-                String url = cols.length > 0 ? cols[0].trim() : "";
-                String name = cols.length > 1 ? cols[1].trim() : "";
-                String columnName = cols.length > 2 ? cols[2].trim() : "";
-                String region = cols.length > 3 ? cols[3].trim() : "";
-                String priority = cols.length > 5 ? cols[5].trim() : "";
-                String templateCode = cols.length > 6 ? cols[6].trim() : "";
-                String platform = platformOverride != null ? platformOverride : (cols.length > 7 ? cols[7].trim() : "");
+                String url = getCsvField(cols, headerMap, "url");
+                String name = getCsvField(cols, headerMap, "name");
+                String columnName = getCsvField(cols, headerMap, "columnName");
+                String region = getCsvField(cols, headerMap, "region");
+                String priority = getCsvField(cols, headerMap, "priority");
+                String templateCode = getCsvField(cols, headerMap, "template");
+                String platform = platformOverride != null ? platformOverride : getCsvField(cols, headerMap, "platform");
 
                 if (!StringUtils.hasText(url) || !URL_PATTERN.matcher(url).matches()) {
                     invalid++;
@@ -516,13 +644,52 @@ public class SourceServiceImpl implements SourceService {
             }
         } catch (Exception e) {
             log.error("CSV导入失败", e);
-            throw new BusinessException("CSV文件解析失败: " + e.getMessage());
+            throw new BusinessException("CSV文件解析失败，请检查文件格式");
         }
 
         return result.total(total).imported(imported).duplicates(duplicates).invalid(invalid).errors(errors).build();
     }
 
-    /** Excel 导入 — 列顺序与 CSV 相同，仅读取第一个 Sheet */
+    /** 根据表头自动匹配列索引，支持中英文表头 */
+    private Map<String, Integer> buildExcelHeaderMap(Row headerRow) {
+        Map<String, List<String>> aliases = Map.of(
+                "url", List.of("url", "URL", "链接", "网址", "网站链接", "采集入口"),
+                "name", List.of("name", "Name", "网站名称", "名称", "站点名称"),
+                "columnName", List.of("column_name", "columnName", "栏目名称", "栏目"),
+                "region", List.of("region", "Region", "地区"),
+                "category", List.of("category", "Category", "分类"),
+                "priority", List.of("priority", "Priority", "优先级"),
+                "template", List.of("template", "templateType", "template_type", "模板", "模板类型"),
+                "platform", List.of("platform", "Platform", "平台")
+        );
+        Map<String, Integer> map = new HashMap<>();
+        for (var entry : aliases.entrySet()) {
+            map.put(entry.getKey(), -1);
+        }
+        if (headerRow == null) return map;
+
+        for (int c = 0; c < headerRow.getLastCellNum(); c++) {
+            String header = getCellString(headerRow, c).trim();
+            if (header.isEmpty()) continue;
+            for (var entry : aliases.entrySet()) {
+                if (map.get(entry.getKey()) >= 0) continue; // already found
+                for (String alias : entry.getValue()) {
+                    if (alias.equalsIgnoreCase(header)) {
+                        map.put(entry.getKey(), c);
+                        break;
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+    private String getExcelField(Row row, Map<String, Integer> headerMap, String field) {
+        int idx = headerMap.getOrDefault(field, -1);
+        return idx >= 0 ? getCellString(row, idx) : "";
+    }
+
+    /** Excel 导入 — 自动识别表头匹配列 */
     private SourceImportDTO importFromExcel(MultipartFile file, String platformOverride, Integer defaultPriority) {
         SourceImportDTO.SourceImportDTOBuilder result = SourceImportDTO.builder();
         List<SourceImportDTO.ErrorItem> errors = new ArrayList<>();
@@ -532,17 +699,20 @@ public class SourceServiceImpl implements SourceService {
             Sheet sheet = workbook.getSheetAt(0);
             int lastRow = sheet.getLastRowNum();
 
+            Map<String, Integer> headerMap = buildExcelHeaderMap(sheet.getRow(0));
+            log.info("Excel header mapping: {}", headerMap);
+
             for (int i = 1; i <= lastRow; i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                String url = getCellString(row, 0);
-                String name = getCellString(row, 1);
-                String columnName = getCellString(row, 2);
-                String region = getCellString(row, 3);
-                String priorityStr = getCellString(row, 5);
-                String templateCode = getCellString(row, 6);
-                String platform = platformOverride != null ? platformOverride : getCellString(row, 7);
+                String url = getExcelField(row, headerMap, "url");
+                String name = getExcelField(row, headerMap, "name");
+                String columnName = getExcelField(row, headerMap, "columnName");
+                String region = getExcelField(row, headerMap, "region");
+                String priorityStr = getExcelField(row, headerMap, "priority");
+                String templateCode = getExcelField(row, headerMap, "template");
+                String platform = platformOverride != null ? platformOverride : getExcelField(row, headerMap, "platform");
 
                 if (!StringUtils.hasText(url)) continue;
                 total++;
@@ -590,7 +760,7 @@ public class SourceServiceImpl implements SourceService {
             }
         } catch (Exception e) {
             log.error("Excel导入失败", e);
-            throw new BusinessException("Excel文件解析失败: " + e.getMessage());
+            throw new BusinessException("Excel文件解析失败，请检查文件格式");
         }
 
         return result.total(total).imported(imported).duplicates(duplicates).invalid(invalid).errors(errors).build();

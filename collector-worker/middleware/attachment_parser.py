@@ -51,7 +51,7 @@ class AttachmentParser:
         # 下载
         try:
             if client is None:
-                async with httpx.AsyncClient(verify=False, timeout=30) as c:
+                async with httpx.AsyncClient(verify=True, timeout=30) as c:
                     resp = await c.get(file_url)
             else:
                 resp = await client.get(file_url)

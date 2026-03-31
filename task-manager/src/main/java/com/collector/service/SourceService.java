@@ -24,6 +24,8 @@ public interface SourceService {
 
     // ---------- Import ----------
 
+    SourceImportDTO batchCreate(List<SourceCreateDTO> items);
+
     SourceImportDTO importFromFile(MultipartFile file, Integer defaultPriority);
 
     SourceImportDTO importPlatform(String platform, MultipartFile file);

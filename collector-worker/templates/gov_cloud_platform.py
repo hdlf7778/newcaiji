@@ -37,7 +37,7 @@ class GovCloudCrawler(BaseCrawlerTemplate):
         2. 检测 HTML 中文章链接 → 标准政务提取
         3. 检测 /col/col 路径 + unitId → JCMS API
         """
-        client = get_client()
+        client = await get_client()
         resp = await client.get(self.url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
         soup = BeautifulSoup(html, 'lxml')
@@ -101,7 +101,7 @@ class GovCloudCrawler(BaseCrawlerTemplate):
         第二步: 采集详情页
         政务网站详情页结构相对统一，依次尝试多个选择器
         """
-        client = get_client()
+        client = await get_client()
         resp = await client.get(item.url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
         soup = BeautifulSoup(html, 'lxml')

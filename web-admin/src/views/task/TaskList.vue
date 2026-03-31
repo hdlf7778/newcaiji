@@ -76,10 +76,13 @@
         @change="onTableChange"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'source_id'">
+          <template v-if="column.key === 'source_name'">
             <router-link :to="`/sources/${record.source_id}`" style="color:#1677ff;">
-              {{ sourceNameMap[record.source_id] || `#${record.source_id}` }}
+              {{ sourceInfoMap[record.source_id]?.name || `#${record.source_id}` }}
             </router-link>
+          </template>
+          <template v-if="column.key === 'column_name'">
+            {{ sourceInfoMap[record.source_id]?.column_name || '—' }}
           </template>
           <template v-if="column.key === 'template'">
             <a-tag :color="templateColor(record.template)">
@@ -145,7 +148,7 @@
         <a-descriptions-item label="任务ID">{{ detailRecord.id }}</a-descriptions-item>
         <a-descriptions-item label="采集源">
           <router-link :to="`/sources/${detailRecord.source_id}`" style="color:#1677ff;">
-            {{ sourceNameMap[detailRecord.source_id] || `#${detailRecord.source_id}` }}
+            {{ sourceInfoMap[detailRecord.source_id]?.name || `#${detailRecord.source_id}` }}
           </router-link>
         </a-descriptions-item>
         <a-descriptions-item label="模板">
@@ -172,6 +175,8 @@ import { useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { taskApi } from '../../api/task.js'
 import request from '../../api/request.js'
+import { templateLabel, templateColor, statusLabel, statusColor } from '../../constants/source.js'
+import { useSourceInfo } from '../../composables/useSourceInfo.js'
 
 const statCards = [
   { key: 'pending', label: '待处理', color: '#1677ff' },
@@ -210,67 +215,18 @@ const pagination = computed(() => ({
 }))
 
 const columns = [
-  { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-  { title: '采集源', dataIndex: 'source_id', key: 'source_id', width: 160 },
+  { title: 'ID', dataIndex: 'id', key: 'id', width: 50 },
+  { title: '网站名称', dataIndex: 'source_id', key: 'source_name', width: 150 },
+  { title: '栏目名称', dataIndex: 'source_id', key: 'column_name', width: 120 },
   { title: '模板', dataIndex: 'template', key: 'template', width: 100 },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 90 },
-  { title: '耗时', dataIndex: 'duration_ms', key: 'duration_ms', width: 80 },
-  { title: '新增文章', dataIndex: 'articles_new', key: 'articles_new', width: 80 },
-  { title: '创建时间', dataIndex: 'created_at', key: 'created_at', width: 160 },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 80 },
+  { title: '耗时', dataIndex: 'duration_ms', key: 'duration_ms', width: 70 },
+  { title: '新增文章', dataIndex: 'articles_new', key: 'articles_new', width: 70 },
+  { title: '创建时间', dataIndex: 'created_at', key: 'created_at', width: 155 },
   { title: '操作', key: 'action', width: 140, fixed: 'right' },
 ]
 
-// 采集源名称缓存：一次性加载前 200 条，超出部分显示 #ID
-const sourceNameMap = ref({})
-async function loadSourceNames() {
-  try {
-    const res = await request.get('/api/sources', { params: { page: 1, pageSize: 200 } })
-    for (const s of (res?.records || [])) {
-      sourceNameMap.value[s.id] = s.name
-    }
-  } catch { /* ignore */ }
-}
-
-// 模板类型映射（注意此处用小写 key，与 SourceList 的大写 key 不一致）
-const TEMPLATE_LABELS = {
-  static_list: { letter: 'A', label: '静态列表', color: 'purple' },
-  iframe_loader: { letter: 'B', label: 'iframe加载', color: 'orange' },
-  api_json: { letter: 'C', label: 'API接口', color: 'blue' },
-  wechat_article: { letter: 'D', label: '微信公众号', color: 'green' },
-  search_discovery: { letter: 'E', label: '搜索监控', color: 'cyan' },
-  auth_required: { letter: 'F', label: '登录态', color: 'red' },
-  spa_render: { letter: 'G', label: 'SPA渲染', color: 'volcano' },
-  rss_feed: { letter: 'H', label: 'RSS订阅', color: 'lime' },
-  gov_cloud_platform: { letter: 'I', label: '政务云', color: 'geekblue' },
-  captured_api: { letter: 'J', label: '抓包API', color: 'default' },
-}
-
-function templateLabel(type) {
-  const t = TEMPLATE_LABELS[type]
-  return t ? `${t.letter} ${t.label}` : type
-}
-
-function templateColor(type) {
-  return TEMPLATE_LABELS[type]?.color || 'default'
-}
-
-const STATUS_MAP = {
-  pending: { label: '待处理', color: 'blue' },
-  processing: { label: '处理中', color: 'orange' },
-  success: { label: '成功', color: 'green' },
-  partial: { label: '部分成功', color: 'cyan' },
-  failed: { label: '失败', color: 'red' },
-  timeout: { label: '超时', color: 'volcano' },
-  dead: { label: '死信', color: 'default' },
-}
-
-function statusColor(status) {
-  return STATUS_MAP[status]?.color || 'default'
-}
-
-function statusLabel(status) {
-  return STATUS_MAP[status]?.label || status
-}
+const { sourceInfoMap, loadForTable } = useSourceInfo()
 
 async function fetchList() {
   loading.value = true
@@ -285,6 +241,7 @@ async function fetchList() {
     const page = res || {}
     tableData.value = page.records || (Array.isArray(page) ? page : [])
     total.value = page.total || 0
+    loadForTable(tableData.value)
   } catch {
     // error handled globally
   } finally {
@@ -358,7 +315,6 @@ async function onTrigger() {
 onMounted(() => {
   const routeQuery = useRoute().query
   if (routeQuery.status) query.status = routeQuery.status
-  loadSourceNames()
   fetchList()
   fetchStats()
   autoRefreshTimer = setInterval(() => {

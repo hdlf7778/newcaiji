@@ -422,7 +422,7 @@ async function onBatchRetry() {
   if (!selectedRowKeys.value.length) return
   batchRetryLoading.value = true
   try {
-    await Promise.all(selectedRowKeys.value.map((id) => taskApi.retryDeadLetter(id)))
+    await taskApi.batchRetryDeadLetters(selectedRowKeys.value)
     message.success(`已提交 ${selectedRowKeys.value.length} 条重试`)
     selectedRowKeys.value = []
     fetchList()
@@ -441,7 +441,7 @@ async function onBatchIgnore() {
     onOk: async () => {
       batchIgnoreLoading.value = true
       try {
-        await Promise.all(selectedRowKeys.value.map((id) => taskApi.deleteDeadLetter(id)))
+        await taskApi.batchIgnoreDeadLetters(selectedRowKeys.value)
         message.success(`已忽略 ${selectedRowKeys.value.length} 条`)
         selectedRowKeys.value = []
         fetchList()

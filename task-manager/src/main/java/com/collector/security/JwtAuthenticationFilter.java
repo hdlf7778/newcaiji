@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         return path.startsWith("/api/auth/login")
-                || path.startsWith("/actuator/");
+                || path.equals("/actuator/health");
     }
 
     private String extractBearerToken(HttpServletRequest request) {

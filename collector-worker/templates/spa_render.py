@@ -15,6 +15,7 @@ Worker: Browser (Playwright sync API, 多进程模式)
 - 同时提供 async 接口（在 HTTP Worker 中 fallback 使用）
   和 sync 接口（在 Browser Worker 多进程中使用）
 """
+import asyncio
 import re
 import logging
 from urllib.parse import urljoin
@@ -153,14 +154,12 @@ class SpaCrawler(BaseCrawlerTemplate):
 
     async def fetch_list(self) -> list[ArticleItem]:
         """async 包装，在线程中运行 sync Playwright"""
-        import asyncio
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.fetch_list_sync)
 
     async def fetch_detail(self, item: ArticleItem) -> ArticleContent:
         """async 包装"""
-        import asyncio
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.fetch_detail_sync, item)
 
     # ========== 页面数据提取（共用）==========

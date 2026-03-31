@@ -78,7 +78,7 @@
             </router-link>
           </template>
           <template v-if="column.key === 'url'">
-            <a :href="record.url" target="_blank" style="color:#1677ff;">
+            <a :href="safeUrl(record.url)" target="_blank" rel="noopener noreferrer" style="color:#1677ff;">
               <LinkOutlined />
             </a>
           </template>
@@ -103,6 +103,8 @@ import { message } from 'ant-design-vue'
 import { LinkOutlined } from '@ant-design/icons-vue'
 import { articleApi } from '../../api/article.js'
 import request from '../../api/request.js'
+import { useSourceInfo } from '../../composables/useSourceInfo.js'
+import { safeUrl } from '../../utils/safeUrl.js'
 
 const query = reactive({
   sourceName: '',
@@ -135,8 +137,8 @@ const columns = [
   { title: '采集时间', dataIndex: 'fetched_at', key: 'fetched_at', width: 150 },
 ]
 
-// 采集源信息缓存：{id: {name, column_name}}
-const sourceInfoMap = ref({})
+const { sourceInfoMap } = useSourceInfo()
+
 async function loadSourceInfo() {
   try {
     const res = await request.get('/api/sources', { params: { page: 1, pageSize: 500 } })
@@ -209,7 +211,9 @@ async function onExport() {
       const a = document.createElement('a')
       a.href = url
       a.download = `articles_${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       URL.revokeObjectURL(url)
       message.success('导出成功')
     } catch {
@@ -231,7 +235,9 @@ async function onExport() {
       const a = document.createElement('a')
       a.href = url
       a.download = `articles_${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       URL.revokeObjectURL(url)
       message.success('导出成功（当前页数据）')
     }

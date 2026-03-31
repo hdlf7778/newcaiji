@@ -69,7 +69,7 @@ class RuleDetector:
         result = DetectResult()
 
         # 获取页面
-        async with httpx.AsyncClient(verify=False, follow_redirects=True,
+        async with httpx.AsyncClient(verify=True, follow_redirects=True,
                                       headers=config.DEFAULT_HEADERS, timeout=15) as client:
             resp = await client.get(url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
@@ -110,7 +110,7 @@ class RuleDetector:
     async def detect_template(self, url: str) -> DetectResult:
         """仅判定模板类型（不生成选择器）"""
         result = DetectResult()
-        async with httpx.AsyncClient(verify=False, follow_redirects=True,
+        async with httpx.AsyncClient(verify=True, follow_redirects=True,
                                       headers=config.DEFAULT_HEADERS, timeout=15) as client:
             resp = await client.get(url)
         html = safe_decode(resp.content, detect_encoding(resp.content))
